@@ -24,22 +24,10 @@ class DATADRIVEN_API UDGCommon : public UObject
 public:
 
 	static UDGCommon* Get();
-
-	void SetPlayerPos(FVector InPos);
-
-	void SetCameraPos(FVector InPos);
-
-	const FVector GainPlayerPos() const;
-
-	const FVector GainCameraPos() const;
 	
 private:
 
 	static UDGCommon* DGInst;
-
-	FVector PlayerPos;
-
-	FVector CameraPos;
 	
 };
 
