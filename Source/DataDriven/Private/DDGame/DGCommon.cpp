@@ -16,23 +16,5 @@ UDGCommon* UDGCommon::Get()
 	return DGInst;
 }
 
-void UDGCommon::SetPlayerPos(FVector InPos)
-{
-	PlayerPos = InPos;
-}
 
-void UDGCommon::SetCameraPos(FVector InPos)
-{
-	CameraPos = InPos;
-}
-
-const FVector UDGCommon::GainPlayerPos() const
-{
-	return PlayerPos;
-}
-
-const FVector UDGCommon::GainCameraPos() const
-{
-	return CameraPos;
-}
 
