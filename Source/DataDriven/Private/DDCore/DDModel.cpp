@@ -1,341 +1,299 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDModel.h"
 #include "DDOO.h"
-#include "DDModule.h"
 
-
-
-//void UDDModel::RegisterSuperModule(UDDModule* SuperMod)
-//{
-//	SuperModule = SuperMod;
-//}
-//
-//void UDDModel::RegisterChildModule(UDDModule* ChildMod)
-//{
-//	//æ·»åŠ å•ä¸ªæ¨¡ç»„
-//	ChildModule.Add(ChildMod->ModuleIndex, ChildMod);
-//}
 
 void UDDModel::RegisterObject(IDDOO* ObjectInst)
 {
-	//å¦‚æœä¸é‡å¤å°±æ·»åŠ åˆ°æ¨¡ç»„å¯¹è±¡
+	//Èç¹û²»ÖØ¸´¾ÍÌí¼Óµ½Ä£×é¶ÔÏó
 	if (!ObjectGroup.Contains(ObjectInst->GetObjectName()))
 	{
+		//Ìí¼Óµ½¶ÔÏó×é
 		ObjectGroup.Add(ObjectInst->GetObjectName(), ObjectInst);
-		//æ·»åŠ åˆ°æ¨¡ç»„ç±»å¯¹è±¡é›†
-		FName ObejctClassName = ObjectInst->GetClassName();
-		if (ObjectClassGroup.Contains(ObejctClassName))
+		//Ìí¼Óµ½¶ÔÏóÀà×é
+		FName ObjectClassName = ObjectInst->GetClassName();
+		if (ObjectClassGroup.Contains(ObjectClassName))
+			ObjectClassGroup.Find(ObjectClassName)->Push(ObjectInst);
+		else
 		{
-			ObjectClassGroup.Find(ObejctClassName)->Add(ObjectInst);
+			TArray<IDDOO*> ObjectArray;
+			ObjectClassGroup.Add(ObjectClassName, ObjectArray);
+			ObjectClassGroup.Find(ObjectClassName)->Push(ObjectInst);
 		}
-		else {
-			TArray<IDDOO*> ObejctArray;
-			ObjectClassGroup.Add(ObejctClassName, ObejctArray);
-			ObjectClassGroup.Find(ObejctClassName)->Add(ObjectInst);
-		}
-		//æ·»åŠ å¯¹è±¡åˆ°ç”Ÿå‘½å‘¨æœŸç»„
-		ObjectLifeGroup.Add(ObjectInst);
+		//Ìí¼Ó¶ÔÏóµ½¼¤»îÉúÃüÖÜÆÚ×é
+		ObjectActiveGroup.Push(ObjectInst);
 	}
-	else {
-		//å¦‚æœæœ‰é‡å¤çš„å°±è¾“å‡ºä¸ªBug
+	else
+		//ÓĞÖØ¸´×¢²á½øĞĞDebug
 		DDH::Debug() << "Object Repeated --> " << ObjectInst->GetObjectName() << DDH::Endl();
-	}
 }
+
+
+
 
 void UDDModel::ModelTick(float DeltaSeconds)
 {
-	//è¿è¡Œç”Ÿå‘½å‘¨æœŸç»„çš„ç”Ÿå‘½å‘¨æœŸå‡½æ•°
-	TArray<IDDOO*> TempObjectGroup;
-	for (int i = 0; i < ObjectLifeGroup.Num(); ++i)
-	{
-		//å¦‚æœæ¿€æ´»æˆåŠŸ
-		if (ObjectLifeGroup[i]->ActiveLife())
-			TempObjectGroup.Add(ObjectLifeGroup[i]);
-	}
-	//å°†è¿è¡Œå®Œç”Ÿå‘½å‘¨æœŸçš„å¯¹è±¡ç§»å‡ºç”Ÿå‘½å‘¨æœŸç»„,å¹¶ä¸”å°†è¿è¡ŒTickè¿è¡Œçš„å¯¹è±¡æ·»åŠ åˆ°Tickç»„
-	for (int i = 0; i < TempObjectGroup.Num(); ++i)
-	{
-		ObjectLifeGroup.Remove(TempObjectGroup[i]);
-		if (TempObjectGroup[i]->IsAllowTickEvent)
-			ObjectTickGroup.Add(TempObjectGroup[i]);
-	}
-	//è¿è¡ŒTickç»„çš„Tickå‡½æ•°
+	//ÔËĞĞTick×éµÄTickº¯Êı
 	for (int i = 0; i < ObjectTickGroup.Num(); ++i)
 		ObjectTickGroup[i]->DDTick(DeltaSeconds);
 
+	//ÁÙÊ±±£´æÍê³ÉÄ³¸öÖÜÆÚµÄ¶ÔÏó
+	TArray<IDDOO*> TempObjectGroup;
+	//Ñ­»·ÔËĞĞ¼¤»îÉúÃüÖÜÆÚº¯Êı
+	for (int i = 0; i < ObjectActiveGroup.Num(); ++i)
+	{
+		//Èç¹û¼¤»î³É¹¦
+		if (ObjectActiveGroup[i]->ActiveLife())
+			TempObjectGroup.Push(ObjectActiveGroup[i]);
+	}
+	//½«ÔËĞĞÍêÉúÃüÖÜÆÚµÄ¶ÔÏóÒÆ³öÉúÃüÖÜÆÚ×é,²¢ÇÒ½«ÔËĞĞTickÔËĞĞµÄ¶ÔÏóÌí¼Óµ½Tick×é
+	for (int i = 0; i < TempObjectGroup.Num(); ++i)
+	{
+		ObjectActiveGroup.Remove(TempObjectGroup[i]);
+		if (TempObjectGroup[i]->IsAllowTickEvent)
+			ObjectTickGroup.Push(TempObjectGroup[i]);
+	}
 
-	//è¿è¡Œé‡Šæ”¾å¯¹è±¡ç»„çš„é‡Šæ”¾å‡½æ•°,è¿è¡Œå®Œåæ¸…ç©ºé‡Šæ”¾å¯¹è±¡ç»„,å› ä¸ºè¿™äº›æŒ‡é’ˆä¼šé‡Šæ”¾,ä¸éœ€è¦å†ä¿å­˜
+
+	//Ö´ĞĞÊÍ·Å¶ÔÏóº¯Êı, Çå¿ÕÊÍ·Å×é
 	for (int i = 0; i < ObjectReleaseGroup.Num(); ++i)
-		ObjectReleaseGroup[i]->OnRealse();
+		ObjectReleaseGroup[i]->DDRelease();
 	ObjectReleaseGroup.Empty();
 
-
-	//æ¸…ç©ºä¸´æ—¶åºåˆ—
+	//Çå¿ÕÁÙÊ±¶ÔÏó×é
 	TempObjectGroup.Empty();
-	//å¤„ç†é¢„å‡½æ•°,å¦‚æœæ˜¯ç¨³å®šçŠ¶æ€,å°±è½¬åˆ°ä¸´æ—¶å¯¹è±¡ç»„
+	//ÔËĞĞÏú»Ù¶ÔÏó×éµÄÏú»ÙÉúÃüÖÜÆÚº¯Êı
+	for (int i = 0; i < ObjectDestroyGroup.Num(); ++i)
+	{
+		//Èç¹ûÏú»ÙÉúÃüÖÜÆÚÖ´ĞĞÍê±Ï
+		if (ObjectDestroyGroup[i]->DestroyLife())
+		{
+			//Ìí¼Ó¶ÔÏóµ½ÊÍ·Å¶ÔÏó×é
+			ObjectReleaseGroup.Push(ObjectDestroyGroup[i]);
+			//Ìí¼Ó¶ÔÏóµ½ÁÙÊ±×é
+			TempObjectGroup.Push(ObjectDestroyGroup[i]);
+			//Çå³ıµô¸ÃÏú»ÙµÄ¶ÔÏó
+			ObjectGroup.Remove(ObjectDestroyGroup[i]->GetObjectName());
+			ObjectClassGroup.Find(ObjectDestroyGroup[i]->GetClassName())->Remove(ObjectDestroyGroup[i]);
+			//Èç¹ûÀà¶ÔÏóÊı×éÎª¿Õ
+			if (ObjectClassGroup.Find(ObjectDestroyGroup[i]->GetClassName())->Num() == 0)
+				ObjectClassGroup.Remove(ObjectDestroyGroup[i]->GetClassName());
+		}
+	}
+
+	//°ÑÏú»ÙµÄ¶ÔÏó´ÓÏú»Ù¶ÔÏó×éÒÆ³ı
+	for (int i = 0; i < TempObjectGroup.Num(); ++i)
+		ObjectDestroyGroup.Remove(TempObjectGroup[i]);
+
+
+	//Çå¿ÕÁÙÊ±¶ÔÏó×é
+	TempObjectGroup.Empty();
+	//´¦ÀíÔ¤Ïú»Ù¶ÔÏó×é, Èç¹û¶ÔÏó½øÈëÎÈ¶¨×´Ì¬, ¾Í×ªµ½ÁÙÊ±¶ÔÏó×é
 	for (int i = 0; i < PreObjectDestroyGroup.Num(); ++i)
 	{
 		if (PreObjectDestroyGroup[i]->RunState == EBaseObjectState::Stable)
 		{
-			//æ·»åŠ ç¨³å®šè¿è¡ŒçŠ¶æ€çš„å¯¹è±¡åˆ°ä¸´æ—¶å¯¹è±¡ç»„
-			TempObjectGroup.Add(PreObjectDestroyGroup[i]);
-			//æ·»åŠ ç¨³å®šè¿è¡ŒçŠ¶æ€çš„å¯¹è±¡åˆ°é”€æ¯è¿›ç¨‹ç»„
-			ObjectDestroyGroup.Add(PreObjectDestroyGroup[i]);
+			//Ìí¼ÓÎÈ¶¨ÔËĞĞ×´Ì¬µÄ¶ÔÏóµ½ÁÙÊ±¶ÔÏó×é
+			TempObjectGroup.Push(PreObjectDestroyGroup[i]);
 		}
 	}
-	//ä»é¢„å¤„ç†ç»„ä¸­æ¸…é™¤è¿›å…¥ç¨³å®šçŠ¶æ€çš„æ•°ç»„
+	//´ÓÔ¤Ïú»Ù¶ÔÏó×éÖĞÇå³ıÎÈ¶¨×´Ì¬¶ÔÏó
 	for (int i = 0; i < TempObjectGroup.Num(); ++i)
 	{
 		PreObjectDestroyGroup.Remove(TempObjectGroup[i]);
+		//Ìí¼Óµ½Ïú»Ù¶ÔÏó×é
+		ObjectDestroyGroup.Push(TempObjectGroup[i]);
+		//ÒÆ³ı³öÖ¡º¯Êı×é
+		ObjectTickGroup.Remove(TempObjectGroup[i]);
 	}
-
-	//æ¸…ç©ºä¸´æ—¶åºåˆ—
-	TempObjectGroup.Empty();
-	//è¿è¡Œé”€æ¯å¯¹è±¡ç»„çš„é”€æ¯å‡½æ•°
-	for (int i = 0; i < ObjectDestroyGroup.Num(); ++i) {
-		//å¦‚æœå·²ç»è¿è¡Œåˆ°é‡Šæ”¾çŠ¶æ€
-		if (ObjectDestroyGroup[i]->DestroyLife()) {
-			//æ·»åŠ åˆ°é‡Šæ”¾å¯¹è±¡ç»„
-			ObjectReleaseGroup.Add(ObjectDestroyGroup[i]);
-			//ä»ObjectGroupä¸ObjectTickGroupå’ŒObjectClassGroupç§»é™¤æ•°æ®
-			ObjectGroup.Remove(ObjectDestroyGroup[i]->GetObjectName());
-			ObjectTickGroup.Remove(ObjectDestroyGroup[i]);
-			if (ObjectClassGroup.Contains(ObjectDestroyGroup[i]->GetClassName())) 
-				ObjectClassGroup.Find(ObjectDestroyGroup[i]->GetClassName())->Remove(ObjectDestroyGroup[i]);
-			//æ·»åŠ é”€æ¯å®Œæ¯•å¯¹è±¡åˆ°ä¸´æ—¶å¯¹è±¡ç»„
-			TempObjectGroup.Add(ObjectDestroyGroup[i]);
-		}
-	}
-	//ä»é”€æ¯ç»„ä¸­æ¸…é™¤è¿›å…¥é”€æ¯å®Œæ¯•çš„æ•°ç»„
-	for (int i = 0; i < TempObjectGroup.Num(); ++i)
-		ObjectDestroyGroup.Remove(TempObjectGroup[i]);
 }
 
-void UDDModel::GetSelfObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup)
-{
-	for (int i = 0; i < ObjectNameGroup.Num(); ++i)
-		if (ObjectGroup.Contains(ObjectNameGroup[i]))
-			TargetObjectGroup.Add(*ObjectGroup.Find(ObjectNameGroup[i]));
-}
 
-int32 UDDModel::GetOtherObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+void UDDModel::DestroyObject(FName ObjectName)
 {
-	//æŠŠå¯¹è±¡ç»„é‡Œä¸ä¼ å…¥å¯¹è±¡åç»„ä¸ç›¸åŒçš„å¯¹è±¡å…¨éƒ¨å­˜åˆ°TargetObjectGroup
-	for (TMap<FName, IDDOO*>::TIterator It(ObjectGroup); It; ++It) {
-		bool IsSame = false;
-		for (int i = 0; i < ObjectNameGroup.Num(); ++i)
-		{
-			//åªè¦æ£€æŸ¥å‡ºç›¸åŒçš„å°±é©¬ä¸Šè·³å‡º
-			if (ObjectNameGroup[i].IsEqual(It->Key)) { IsSame = true; break; }
-		}
-		if (!IsSame) TargetObjectGroup.Add(It->Value);
-	}
-	//è¿”å›å…¨éƒ¨å¯¹è±¡çš„æ•°é‡
-	return GetObjectGroupNum();
-}
-
-int32 UDDModel::GetClassOtherObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup)
-{
-	//ç°è·å–ç±»å
-	FName ObjectClassName = (*ObjectGroup.Find(ObjectNameGroup[0]))->GetClassName();
-	//è¿­ä»£ç±»ç»„å¯¹è±¡
-	for (TArray<IDDOO*>::TIterator It(*ObjectClassGroup.Find(ObjectClassName)); It; ++It)
+	//»ñÈ¡ĞèÒªÏú»ÙµÄ¶ÔÏó
+	if (ObjectGroup.Contains(ObjectName))
 	{
-		bool IsSame = false;
-		for (int i = 0; i < ObjectNameGroup.Num(); ++i)
+		IDDOO* TargetObject = *ObjectGroup.Find(ObjectName);
+		//Èç¹ûÏú»Ù¶ÔÏó×éÒÔ¼°Ô¤Ïú»Ù¶ÔÏó×é¶¼Ã»ÓĞ¸Ã¶ÔÏó
+		if (!ObjectDestroyGroup.Contains(TargetObject) && !PreObjectDestroyGroup.Contains(TargetObject))
 		{
-			//å¦‚æœå­˜å‚¨çš„å¯¹è±¡ç›¸åŒå°±è·³å‡º
-			if (*It == *ObjectGroup.Find(ObjectNameGroup[i])) { IsSame = true; break; }
-		}
-		if (!IsSame) TargetObjectGroup.Add(*It);
-	}
-	//è¿”å›è¿™ä¸ªç±»çš„å¯¹è±¡æ•°é‡
-	return GetClassObjectGroupNum(ObjectClassName);
-}
-
-void UDDModel::GetSelfClass(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup)
-{
-	for (int i = 0; i < ObjectNameGroup.Num(); ++i) {
-		//å¦‚æœä¸åŒ…å«è¿™ä¸ªç±»,ç›´æ¥è·³åˆ°ä¸‹ä¸€ä¸ªå¾ªç¯
-		if (!ObjectClassGroup.Contains(ObjectNameGroup[i])) continue;
-		//å¾ªç¯è¿™ä¸ªç±»å»å¡«å…¥TargetObjectGroup
-		for (TArray<IDDOO*>::TIterator It(*ObjectClassGroup.Find(ObjectNameGroup[i])); It; ++It)
-			TargetObjectGroup.Add(*It);
-	}
-}
-
-void UDDModel::GetOtherClass(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup)
-{
-	for (TMap<FName, TArray<IDDOO*>>::TIterator It(ObjectClassGroup); It; ++It) {
-		bool IsSame = false;
-		for (int i = 0; i < ObjectNameGroup.Num(); ++i) {
-			if (ObjectNameGroup[i].IsEqual(It->Key)) { IsSame = true; break; }
-		}
-		//å¦‚æœè¿­ä»£åˆ°çš„è¿™ä¸ªç±»ç»„ä¸ä¼ å…¥çš„ç±»åç›¸åŒ,è·³åˆ°ä¸‹ä¸€ä¸ªå¾ªç¯
-		if (IsSame) continue;
-		//å¦‚æœè¿­ä»£åˆ°çš„è¿™ä¸ªç±»ç»„ä¸ä¼ å…¥çš„ç±»åä¸ç›¸åŒ,æ·»åŠ åˆ°TargetObjectGroup
-		for (TArray<IDDOO*>::TIterator Ih(It->Value); Ih; ++Ih)
-			TargetObjectGroup.Add(*Ih);
-	}
-}
-
-void UDDModel::GetAll(TArray<IDDOO*>& TargetObjectGroup)
-{
-	//æŠŠå¯¹è±¡ç»„é‡Œä¸ä¼ å…¥å¯¹è±¡åç»„ä¸ç›¸åŒçš„å¯¹è±¡å…¨éƒ¨å­˜åˆ°TargetObjectGroup
-	for (TMap<FName, IDDOO*>::TIterator It(ObjectGroup); It; ++It)
-		TargetObjectGroup.Add(It->Value);
-}
-
-void UDDModel::DestroyObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup)
-{
-	TArray<IDDOO*> TargetObjectGroup;
-	switch (Agreement)
-	{
-	case EAgreementType::SelfObject:
-		GetSelfObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherObject:
-		GetOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::ClassOtherObject:
-		GetClassOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::SelfClass:
-		GetSelfClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherClass:
-		GetOtherClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::All:
-		GetAll(TargetObjectGroup);
-		break;
-	}
-	//è¿­ä»£å°†å¯¹è±¡æ·»åŠ åˆ°PreObjectDestroyGroupæˆ–è€…ObjectDestroyGroup
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
-	{
-		if (!ObjectDestroyGroup.Contains(TargetObjectGroup[i]) && !PreObjectDestroyGroup.Contains(TargetObjectGroup[i]))
-		{
-			//å¦‚æœæ˜¯ç¨³å®šçŠ¶æ€å°±æ·»åŠ åˆ°ObjectDestroyGroup,å¦‚æœæ˜¯æ¿€æ´»çŠ¶æ€å°±æ·»åŠ åˆ°PreObjectDestroyGroup
-			switch (TargetObjectGroup[i]->RunState)
+			//Èç¹ûÊÇÎÈ¶¨×´Ì¬¾ÍÌí¼Óµ½ObjectDestroyGroup,Èç¹ûÊÇ¼¤»î×´Ì¬¾ÍÌí¼Óµ½PreObjectDestroyGroup
+			switch (TargetObject->RunState)
 			{
 			case EBaseObjectState::Active:
-				PreObjectDestroyGroup.Add(TargetObjectGroup[i]);
+				PreObjectDestroyGroup.Push(TargetObject);
 				break;
 			case EBaseObjectState::Stable:
-				ObjectDestroyGroup.Add(TargetObjectGroup[i]);
+				ObjectDestroyGroup.Push(TargetObject);
+				ObjectTickGroup.Remove(TargetObject);
 				break;
 			}
 		}
 	}
 }
 
-void UDDModel::EnableObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup)
+void UDDModel::DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
 {
+	//¶¨Òå»ñÈ¡µ½µÄ¶ÔÏóÊı×é
 	TArray<IDDOO*> TargetObjectGroup;
-	switch (Agreement)
+
+	//¸ù¾İĞ­Òé»ñÈ¡¶ÔÏó
+	GetAgreementObject(Agreement, TargetNameGroup, TargetObjectGroup);
+
+	//ÅúÁ¿Ïú»Ù¶ÔÏó
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
 	{
-	case EAgreementType::SelfObject:
-		GetSelfObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherObject:
-		GetOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::ClassOtherObject:
-		GetClassOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::SelfClass:
-		GetSelfClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherClass:
-		GetOtherClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::All:
-		GetAll(TargetObjectGroup);
-		break;
+		//Èç¹ûÏú»Ù¶ÔÏó×éÒÔ¼°Ô¤Ïú»Ù¶ÔÏó×é¶¼Ã»ÓĞ¸Ã¶ÔÏó
+		if (!ObjectDestroyGroup.Contains(TargetObjectGroup[i]) && !PreObjectDestroyGroup.Contains(TargetObjectGroup[i]))
+		{
+			//Èç¹ûÊÇÎÈ¶¨×´Ì¬¾ÍÌí¼Óµ½ObjectDestroyGroup,Èç¹ûÊÇ¼¤»î×´Ì¬¾ÍÌí¼Óµ½PreObjectDestroyGroup
+			switch (TargetObjectGroup[i]->RunState)
+			{
+			case EBaseObjectState::Active:
+				PreObjectDestroyGroup.Push(TargetObjectGroup[i]);
+				break;
+			case EBaseObjectState::Stable:
+				ObjectDestroyGroup.Push(TargetObjectGroup[i]);
+				ObjectTickGroup.Remove(TargetObjectGroup[i]);
+				break;
+			}
+		}
 	}
-	//è¿­ä»£è¿è¡Œ
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//å¦‚æœè¿™ä¸ªå¯¹è±¡å¤„äºç¨³å®šä¸å¤±æ´»çŠ¶æ€å°±è¿è¡Œä»–çš„æ¿€æ´»çŠ¶æ€å‡½æ•°
+}
+
+void UDDModel::EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	//¶¨Òå»ñÈ¡µ½µÄ¶ÔÏóÊı×é
+	TArray<IDDOO*> TargetObjectGroup;
+
+	//¸ù¾İĞ­Òé»ñÈ¡¶ÔÏó
+	GetAgreementObject(Agreement, TargetNameGroup, TargetObjectGroup);
+
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//Èç¹ûÕâ¸ö¶ÔÏó´¦ÓÚÎÈ¶¨ÓëÊ§»î×´Ì¬¾ÍÔËĞĞËûµÄ¼¤»î×´Ì¬º¯Êı
 		if (TargetObjectGroup[i]->RunState == EBaseObjectState::Stable && TargetObjectGroup[i]->LifeState == EBaseObjectLife::Disable)
 			TargetObjectGroup[i]->OnEnable();
 	}
 }
 
-void UDDModel::DisableObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup)
+void UDDModel::DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
 {
+	//¶¨Òå»ñÈ¡µ½µÄ¶ÔÏóÊı×é
 	TArray<IDDOO*> TargetObjectGroup;
-	switch (Agreement)
+
+	//¸ù¾İĞ­Òé»ñÈ¡¶ÔÏó
+	GetAgreementObject(Agreement, TargetNameGroup, TargetObjectGroup);
+
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
 	{
-	case EAgreementType::SelfObject:
-		GetSelfObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherObject:
-		GetOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::ClassOtherObject:
-		GetClassOtherObject(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::SelfClass:
-		GetSelfClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::OtherClass:
-		GetOtherClass(ObjectNameGroup, TargetObjectGroup);
-		break;
-	case EAgreementType::All:
-		GetAll(TargetObjectGroup);
-		break;
-	}
-	//è¿­ä»£è¿è¡Œ
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//å¦‚æœè¿™ä¸ªå¯¹è±¡å¤„äºç¨³å®šä¸æ¿€æ´»çŠ¶æ€å°±è¿è¡Œä»–çš„å¤±æ´»çŠ¶æ€å‡½æ•°
+		//Èç¹ûÕâ¸ö¶ÔÏó´¦ÓÚÎÈ¶¨ÓëÊ§»î×´Ì¬¾ÍÔËĞĞËûµÄ¼¤»î×´Ì¬º¯Êı
 		if (TargetObjectGroup[i]->RunState == EBaseObjectState::Stable && TargetObjectGroup[i]->LifeState == EBaseObjectLife::Enable)
 			TargetObjectGroup[i]->OnDisable();
 	}
 }
 
-int32 UDDModel::GetObjectGroupNum() const
+void UDDModel::GetSelfObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
 {
+	for (int i = 0; i < TargetNameGroup.Num(); ++i)
+		if (ObjectGroup.Contains(TargetNameGroup[i]))
+			TargetObjectGroup.Push(*ObjectGroup.Find(TargetNameGroup[i]));
+}
+
+int32 UDDModel::GetOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+{
+	for (TMap<FName, IDDOO*>::TIterator It(ObjectGroup); It; ++It)
+	{
+		bool IsSame = false;
+		for (int i = 0; i < TargetNameGroup.Num(); ++i)
+		{
+			//¼ì²âÃû×ÖÊÇ·ñÏàÍ¬, ÏàÍ¬¾ÍÌø³ö
+			if (TargetNameGroup[i].IsEqual(It->Key))
+			{
+				IsSame = true;
+				break;
+			}
+		}
+		if (!IsSame)
+			TargetObjectGroup.Push(It->Value);
+	}
+	//·µ»ØÈ«²¿¶ÔÏóµÄÊıÁ¿
 	return ObjectGroup.Num();
 }
 
-int32 UDDModel::GetClassObjectGroupNum(FName ObjectClassName) const
+int32 UDDModel::GetClassOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
 {
-	if (ObjectClassGroup.Contains(ObjectClassName)) 
-		return (*ObjectClassGroup.Find(ObjectClassName)).Num();
-	return 0;
-}
-
-void UDDModel::RemoveObject(FName ObjectName)
-{
-	//å¦‚æœæ²¡æœ‰è¿™ä¸ªå¯¹è±¡,ç›´æ¥è¿”å›
-	if (!ObjectGroup.Contains(ObjectName)) return;
-	//å…ˆè·å–å¯¹è±¡æŒ‡é’ˆ
-	IDDOO* TargetObject = *ObjectGroup.Find(ObjectName);
-	//ä»ç”Ÿå‘½ç»„ç§»é™¤å¯¹è±¡
-	ObjectLifeGroup.Remove(TargetObject);
-	//ä»å¸§ç»„ç§»é™¤å¯¹è±¡
-	ObjectTickGroup.Remove(TargetObject);
-	//ä»ç±»ç»„ç§»é™¤å¯¹è±¡
-	ObjectClassGroup.Find(TargetObject->GetClassName())->Remove(TargetObject);
-	//ä»å¯¹è±¡ç»„ç§»é™¤å¯¹è±¡
-	ObjectGroup.Remove(ObjectName);
-}
-
-void UDDModel::RemoveObjectClass(FName ObjectClassName)
-{
-	//å¦‚æœæ²¡æœ‰è¿™ä¸ªå¯¹è±¡ç±»,ç›´æ¥è¿”å›
-	if (!ObjectClassGroup.Contains(ObjectClassName)) return;
-	//è·å–ç±»å¯¹è±¡æ•°ç»„
-	TArray<IDDOO*>* TargetClassGroup = ObjectClassGroup.Find(ObjectClassName);
-	//è¿­ä»£ç§»é™¤å¯¹è±¡
-	for (int i = 0; i < (*TargetClassGroup).Num(); ++i) {
-		//ä»ç”Ÿå‘½ç»„ä¸å¸§ç»„ç§»é™¤å¯¹è±¡
-		ObjectLifeGroup.Remove((*TargetClassGroup)[i]);
-		ObjectTickGroup.Remove((*TargetClassGroup)[i]);
-		//ä»å¯¹è±¡ç»„ç§»é™¤å¯¹è±¡
-		ObjectGroup.Remove((*TargetClassGroup)[i]->GetObjectName());
+	if (!ObjectGroup.Contains(TargetNameGroup[0]))
+		return 0;
+	//ÏÖ»ñÈ¡¶ÔÏóÀàÃû
+	FName ObjectClassName = (*ObjectGroup.Find(TargetNameGroup[0]))->GetClassName();
+	//µü´ú¶ÔÏóÀàÊµÀıÊı×é
+	for (TArray<IDDOO*>::TIterator It(*ObjectClassGroup.Find(ObjectClassName)); It; ++It)
+	{
+		bool IsSame = false;
+		for (int i = 0; i < TargetNameGroup.Num(); ++i)
+		{
+			if ((*It)->GetObjectName().IsEqual(TargetNameGroup[i]))
+			{
+				IsSame = true;
+				break;
+			}
+		}
+		if (!IsSame)
+			TargetObjectGroup.Push(*It);
 	}
-	//æœ€åä»ç±»ç»„ç§»é™¤
-	ObjectClassGroup.Remove(ObjectClassName);
+	//·µ»Ø¶ÔÏóÀàÃû¶ÔÓ¦µÄ¶ÔÏó×éµÄÊıÁ¿
+	return (*ObjectClassGroup.Find(ObjectClassName)).Num();
 }
+
+void UDDModel::GetSelfClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+{
+	for (int i = 0; i < TargetNameGroup.Num(); ++i)
+	{
+		//Èç¹û²»°üº¬Õâ¸öÀà, Ìøµ½ÏÂÒ»¸öÑ­»·
+		if(!ObjectClassGroup.Contains(TargetNameGroup[i]))
+			continue;
+		TargetObjectGroup.Append(*ObjectClassGroup.Find(TargetNameGroup[i]));
+	}
+}
+
+void UDDModel::GetOtherClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+{
+	for (TMap<FName, TArray<IDDOO*>>::TIterator It(ObjectClassGroup); It; ++It)
+		if (!TargetNameGroup.Contains(It->Key))
+			TargetObjectGroup.Append(It->Value);
+}
+
+void UDDModel::GetAll(TArray<IDDOO*>& TargetObjectGroup)
+{
+	ObjectGroup.GenerateValueArray(TargetObjectGroup);
+}
+
+void UDDModel::GetAgreementObject(EAgreementType Agreement, TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup)
+{
+	switch (Agreement)
+	{
+	case EAgreementType::SelfObject:
+		GetSelfObject(TargetNameGroup, TargetObjectGroup);
+		break;
+	case EAgreementType::OtherObject:
+		GetOtherObject(TargetNameGroup, TargetObjectGroup);
+		break;
+	case EAgreementType::ClassOtherObject:
+		GetClassOtherObject(TargetNameGroup, TargetObjectGroup);
+		break;
+	case EAgreementType::SelfClass:
+		GetSelfClass(TargetNameGroup, TargetObjectGroup);
+		break;
+	case EAgreementType::OtherClass:
+		GetOtherClass(TargetNameGroup, TargetObjectGroup);
+		break;
+	case EAgreementType::All:
+		GetAll(TargetObjectGroup);
+		break;
+	}
+}
+

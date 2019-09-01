@@ -13,7 +13,7 @@ class DATADRIVEN_API UDDSceneComponent : public USceneComponent, public IDDOO
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UDDSceneComponent();
 
@@ -36,5 +36,5 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	
+		
 };

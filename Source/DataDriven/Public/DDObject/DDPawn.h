@@ -7,11 +7,11 @@
 #include "DDOO.h"
 #include "DDPawn.generated.h"
 
-
 UCLASS()
 class DATADRIVEN_API ADDPawn : public APawn, public IDDOO
 {
 	GENERATED_BODY()
+
 
 public:
 	// Sets default values for this pawn's properties
@@ -36,7 +36,4 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-
-	
-	
 };

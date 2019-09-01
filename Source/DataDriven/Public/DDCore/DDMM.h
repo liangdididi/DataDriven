@@ -7,8 +7,6 @@
 #include "DDCommon/DDCommon.h"
 #include "DDMM.generated.h"
 
-
-class ADDDriver;
 class UDDModule;
 
 // This class does not need to be modified.
@@ -25,29 +23,33 @@ class DATADRIVEN_API IDDMM
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	//æŒ‡å®šæ¨¡ç»„
-	virtual void AssignModule(UDDModule* Mod);
-	
-	//å‘å¸ƒæ–¹æ³•
+	//Ö¸¶¨Ä£×é
+	void AssignModule(UDDModule* Mod);
+
+protected:
+
+	//Ö´ĞĞ·´Éä·½·¨
 	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
-	//å‘å¸ƒæ–¹æ³•
+
+	//Ö´ĞĞ·´Éä·½·¨
 	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
-	//è·å–ä¸–ç•Œ
+	//»ñÈ¡ÊÀ½ç
 	UWorld* GetDDWorld() const;
 
 protected:
 
-	//ä¿å­˜å¯¹åº”çš„æ¨¡ç»„
+	//±£´æ¶ÔÓ¦µÄÄ£×é
 	UDDModule* IModule;
 
-	//ä¿å­˜GameMode
+	//±£´æÇı¶¯Æ÷
 	ADDDriver* IDriver;
 
-	//ä¿å­˜å¯¹åº”æ¨¡ç»„çš„Index
+	//¶ÔÓ¦Ä£×éµÄĞòºÅ
 	int32 ModuleIndex;
+
+
 
 };

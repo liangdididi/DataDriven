@@ -1,14 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DDUserWidget.h"
 
+#include "DDUserWidget.h"
 
 void UDDUserWidget::DDRelease()
 {
-	//鍐嶆鏌ヤ竴娆′粠鐖剁被绉婚櫎
+	IDDOO::DDRelease();
+	//再检查一次从父类移除
 	RemoveFromParent();
-	//浠嶳oot绉婚櫎
+	//从Root移除
 	RemoveFromRoot();
-	//鍑嗗鍥炴敹璧勬簮
+	//准备回收资源
 	ConditionalBeginDestroy();
 }

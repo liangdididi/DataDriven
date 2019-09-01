@@ -14,7 +14,8 @@ UCLASS()
 class DATADRIVEN_API ADDCameraActor : public ACameraActor, public IDDOO
 {
 	GENERATED_BODY()
-	
+
+
 public:
 
 	ADDCameraActor();
@@ -37,6 +38,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	
 };

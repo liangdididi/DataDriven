@@ -4,16 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "DDCommon/DDCommon.h"
-
 #include "DDMessage.h"
-
 #include "DDModule.generated.h"
 
 class UDDModel;
 class UDDWealth;
 class IDDOO;
-
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class DATADRIVEN_API UDDModule : public USceneComponent
@@ -24,129 +20,146 @@ public:
 	// Sets default values for this component's properties
 	UDDModule();
 
-	//Moduleçš„Initå‡½æ•°
-	virtual void ModuleInit();
-
-	//Moduleçš„BeginPlayå‡½æ•°
-	virtual void ModuleBeginPlay();
-
-	//Moduleçš„Tickå‡½æ•°
-	virtual void ModuleTick(float DeltaSeconds);
-
-	void RegisterObject(IDDOO* Object);
-
 	void CreateManager();
 
+	//ModuleµÄInitº¯Êı
+	virtual void ModuleInit();
+
+	//ModuleµÄBeginPlayº¯Êı
+	virtual void ModuleBeginPlay();
+
+	//ModuleµÄTickº¯Êı
+	virtual void ModuleTick(float DeltaSeconds);
+
+	//Éè¶¨Ä£ĞÍÃ¶¾ÙÀàĞÍ
 	void ChangeModuleType(FName ModuleType);
 
-	//è°ƒåŠ¨æ¨¡ç»„æ–¹æ³•
+	//×¢²á¶ÔÏóµ½Êı¾İÄ£¿é
+	void RegisterObject(IDDOO* ObjectInst);
+
+	//Ä£×éËùÊô¶ÔÏóÏú»Ù×ÔÉí
+	void ChildDestroy(FName ObjectName);
+
+	//·´ÉäÊÂ¼şÅúÁ¿Ïú»Ù¶ÔÏó
+	UFUNCTION()
+		void DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//·´ÉäÊÂ¼şÅúÁ¿¼¤»î¶ÔÏó
+	UFUNCTION()
+		void EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//·´ÉäÊÂ¼şÅúÁ¿Ê§»î¶ÔÏó
+	UFUNCTION()
+		void DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//µ÷ÓÃÄ£×é·½·¨
 	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
-	//è°ƒç”¨å¯¹è±¡æ–¹æ³•
+
+	//µ÷ÓÃ¶ÔÏó·½·¨
 	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
-	//æ³¨å†Œè°ƒç”¨æ¥å£
+	//×¢²áµ÷ÓÃ½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDCallHandle<RetType, VarTypes...> RegisterCallPort(FName CallName);
 
-	//æ³¨å†Œè°ƒç”¨æ–¹æ³•
+	//×¢²á·½·¨½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDFunHandle RegisterFunPort(FName CallName, TFunction<RetType(VarTypes...)> InsFun);
 
-	//å¼€å§‹ä¸€ä¸ªåç¨‹, è¿”å›trueè¯´æ˜å¼€å¯åç¨‹æˆåŠŸ, è¿”å›falseè¯´æ˜å·²ç»æœ‰ç›¸åŒåå­—çš„åç¨‹åœ¨è¿è¡Œ
+	//¿ªÆôÒ»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷¿ªÆô³É¹¦, ·µ»ØfalseËµÃ÷ÒÑ¾­ÓĞÍ¬¶ÔÏóÃûÍ¬Ğ­³ÌÈÎÎñÃûµÄĞ­³Ì´æÔÚ
 	bool StartCoroutine(FName ObjectName, FName CoroName, DDCoroTask* CoroTask);
 
-	//åœæ­¢ä¸€ä¸ªåç¨‹, æ”¾å›trueè¯´æ˜åœæ­¢åç¨‹æˆåŠŸ, è¿”å›falseè¯´æ˜åç¨‹æ—©å·²ç»åœæ­¢
+	//Í£Ö¹Ò»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷Í£Ö¹Ğ­³Ì³É¹¦, ·µ»ØfalseËµÃ÷Ğ­³ÌÔçÒÑ¾­Í£Ö¹
 	bool StopCoroutine(FName ObjectName, FName CoroName);
 
-	//åœæ­¢è¯¥å¯¹è±¡çš„æ‰€æœ‰åç¨‹
-	void StopAllCoroutine(FName ObjectName);
+	//Í£Ö¹¸Ã¶ÔÏóµÄËùÓĞĞ­³Ì
+	void StopAllCorotine(FName ObjectName);
 
-	//å¼€å§‹ä¸€ä¸ªå»¶æ—¶æ–¹æ³•, è¿”å›trueè¯´æ˜å¼€å¯æˆåŠŸ, è¿”å›falseè¯´æ˜å·²ç»æœ‰ç›¸åŒåå­—çš„æ–¹æ³•åœ¨è¿è¡Œ
+	//¿ªÊ¼Ò»¸öÑÓÊ±·½·¨, ·µ»ØtrueËµÃ÷¿ªÆô³É¹¦, ·µ»ØfalseËµÃ÷ÒÑ¾­ÓĞÏàÍ¬Ãû×ÖµÄ·½·¨ÔÚÔËĞĞ
 	bool StartInvoke(FName ObjectName, FName InvokeName, DDInvokeTask* InvokeTask);
 
-	//åœæ­¢ä¸€ä¸ªå»¶æ—¶æ–¹æ³•, è¿”å›trueè¯´æ˜åœæ­¢å»¶æ—¶æˆåŠŸ, è¿”å›falseè¯´æ˜å»¶æ—¶æ—©å·²ç»åœæ­¢
+	//Í£Ö¹Ò»¸öÑÓÊ±·½·¨, ·µ»ØtrueËµÃ÷Í£Ö¹ÑÓÊ±³É¹¦, ·µ»ØfalseËµÃ÷ÑÓÊ±ÔçÒÑ¾­Í£Ö¹
 	bool StopInvoke(FName ObjectName, FName InvokeName);
 
-	//åœæ­¢è¯¥å¯¹è±¡çš„æ‰€æœ‰å»¶æ—¶æ–¹æ³•
+	//Í£Ö¹¸Ã¶ÔÏóµÄËùÓĞÑÓÊ±·½·¨
 	void StopAllInvoke(FName ObjectName);
 
-	//è·å–æ‰€æœ‰æ¨¡å—åˆ°æ•°ç»„
-	void IterGatherModule(UDDModule* Module, TArray<UDDModule*>& GatherGroup);
-
-	//æ³¨å†ŒAxisæŒ‰é”®äº‹ä»¶
+	//°ó¶¨Axis°´¼üÊÂ¼ş
 	template<class UserClass>
-	FInputAxisBinding& BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName);
+	FInputAxisBinding& BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName);
 
-	//æ³¨å†Œè§¦æ‘¸äº‹ä»¶
+	//°ó¶¨´¥ÃşÊÂ¼ş
 	template<class UserClass>
 	FInputTouchBinding& BindTouch(UserClass* UserObj, typename FInputTouchHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const EInputEvent KeyEvent);
 
-	//æ³¨å†Œå•ä¸ªæŒ‰é”®äº‹ä»¶
+	//°ó¶¨Antion°´¼üÊÂ¼ş
 	template<class UserClass>
-	FInputKeyBinding& BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent);
+	FInputActionBinding& BindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent);
 
-	//æ³¨å†Œå¤šä¸ªæŒ‰é”®äº‹ä»¶
+	//°ó¶¨µ¥¸ö°´¼üÊÂ¼ş
+	template<class UserClass>
+	FInputKeyBinding& BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent);
+
+	//°ó¶¨¶à¸ö°´¼ü
 	template<class UserClass>
 	UDDInputBinder& BindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, TArray<FKey>& KeyGroup, FName ObjectName);
 
-	//æŒ‰é”®äº‹ä»¶æ³¨é”€
+	//½â°ó¶ÔÏóµÄËùÓĞ°´¼üÊÂ¼ş
 	void UnBindInput(FName ObjectName);
 
-	//å­é›†å¯¹è±¡é”€æ¯è‡ªèº«å‡½æ•°
-	void ChildDestroy(FName ObjectName);
+	//Íâ²¿·½·¨µ¥´¿»ñÈ¡×ÊÔ´Á´½Ó
+	FWealthURL* GainWealthURL(FName WealthName);
+	void GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL);
 
-	//å¤–éƒ¨æ–¹æ³•, åˆ›å»ºæ–°çš„Classèµ„æº
-	void BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform);
-	void BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
-	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
-
-	//å¤–éƒ¨æ–¹æ³•è·å–UEèµ„æº
-	void LoadClassWealth(FName WealthName, FName ObjectName, FName FunName);
-	void LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName);
-
-	//å¤–éƒ¨æ–¹æ³•è·å–UEèµ„æº
+	//¼ÓÔØObjectÀàĞÍ×ÊÔ´½Ó¿Ú
 	void LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName);
 	void LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName);
 
-	//å¤–éƒ¨æ–¹æ³•å•çº¯çš„è·å–èµ„æºé“¾æ¥
-	FWealthURL* GainWealthURL(FName WealthName);
-	void GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL);
+	//¼ÓÔØClassÀàĞÍ×ÊÔ´½Ó¿Ú
+	void LoadClassWealth(FName WealthName, FName ObjectName, FName FunName);
+	void LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName);
+
+	//´´½¨Ò»¸ö¶ÔÏóÊµÀı
+	void BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform);
+
+	//´´½¨Í¬×ÊÔ´ÖÖÀàÃûµÄ¶ÔÏóÊµÀı, Í¬ÖÖÀàÃûÏÂµÄÃ¿¸ö×ÊÔ´Á´½Ó´´½¨Ò»¸ö¶ÔÏóÊµÀı
+	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
+
+	//´´½¨¶à¸öÍ¬×ÊÔ´ÃûµÄ¶ÔÏóÊµÀı
+	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
 
 public:
 
 	UPROPERTY(EditAnywhere, Category = "DataDriven")
 		TArray<UWealthData*> WealthData;
 
-	UPROPERTY(VisibleAnywhere, Category = "DataDriven")
-		int32 ModuleIndex;
-
 	TArray<UDDModule*> ChildrenModule;
+
+	int32 ModuleIndex;
 
 protected:
 
-	//æ‰§è¡Œå•ä¸ªå¯¹è±¡æ–¹æ³•
+	//Ö´ĞĞµ¥¸ö¶ÔÏó·½·¨
 	void ExecuteSelfObject(DDObjectAgreement Agreement, DDParam* Param);
-	//æ‰§è¡Œå…¶ä½™å¯¹è±¡æ–¹æ³•
+	//Ö´ĞĞÆäÓà¶ÔÏóµÄ·½·¨
 	void ExecuteOtherObject(DDObjectAgreement Agreement, DDParam* Param);
-	//æ”¯æŒç›¸åŒç±»çš„åŒºåŸŸå¯¹è±¡æ–¹æ³•
+	//Ö§³ÖÏàÍ¬ÀàµÄÇøÓò¶ÔÏó·½·¨
 	void ExecuteClassOtherObject(DDObjectAgreement Agreement, DDParam* Param);
-	//æ‰§è¡Œç±»å¯¹è±¡çš„æ–¹æ³•
+	//Ö´ĞĞÀà¶ÔÏóµÄ·½·¨
 	void ExecuteSelfClass(DDObjectAgreement Agreement, DDParam* Param);
-	//æ‰§è¡Œå…¶ä»–ç±»å¯¹è±¡çš„æ–¹æ³•
+	//Ö´ĞĞÆäËûÀà¶ÔÏóµÄ·½·¨
 	void ExecuteOtherClass(DDObjectAgreement Agreement, DDParam* Param);
-	//æ‰§è¡Œæ‰€æœ‰å¯¹è±¡çš„æ–¹æ³•
+	//Ö´ĞĞËùÓĞ¶ÔÏóµÄ·½·¨
 	void ExecuteAll(DDObjectAgreement Agreement, DDParam* Param);
 
 protected:
 
-	//ä¿å­˜æ•°æ®æŒ‡é’ˆ
-	UDDModel * Model;
-	//ä¿å­˜æ¶ˆæ¯æŒ‡é’ˆ
+	//Êı¾İÄ£¿éÖ¸Õë
+	UDDModel* Model;
+	//ÏûÏ¢Ä£¿éÖ¸Õë
 	UDDMessage* Message;
-	//ä¿å­˜èµ„æºæŒ‡é’ˆ
+	//×ÊÔ´Ä£¿éÖ¸Õë
 	UDDWealth* Wealth;
-
-
 };
 
 template<typename RetType, typename... VarTypes>
@@ -163,7 +176,7 @@ DDFunHandle UDDModule::RegisterFunPort(FName CallName, TFunction<RetType(VarType
 }
 
 template<class UserClass>
-FInputAxisBinding& UDDModule::BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName)
+FInputAxisBinding& UDDModule::BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName)
 {
 	return Message->BindAxis(UserObj, InMethod, AxisName);
 }
@@ -175,7 +188,13 @@ FInputTouchBinding& UDDModule::BindTouch(UserClass* UserObj, typename FInputTouc
 }
 
 template<class UserClass>
-FInputKeyBinding& UDDModule::BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
+FInputActionBinding& UDDModule::BindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent)
+{
+	return Message->BindAction(UserObj, InMethod, ActionName, KeyEvent);
+}
+
+template<class UserClass>
+FInputKeyBinding& UDDModule::BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
 {
 	return Message->BindInput(UserObj, InMethod, Key, KeyEvent);
 }
@@ -185,4 +204,3 @@ UDDInputBinder& UDDModule::BindInput(UserClass* UserObj, typename FDDInputEvent:
 {
 	return Message->BindInput(UserObj, InMethod, KeyGroup, ObjectName);
 }
-

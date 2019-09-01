@@ -1,33 +1,32 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDModule.h"
-#include "DDOO.h"
 #include "DDModel.h"
 #include "DDWealth.h"
+#include "DDOO.h"
 
 // Sets default values for this component's properties
 UDDModule::UDDModule()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	//å…è®¸è¿è¡Œå‡½æ•°
-	bWantsInitializeComponent = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 }
 
+
 void UDDModule::CreateManager()
 {
-	//å®ä¾‹åŒ–ç»„ä»¶, è¿™é‡Œç”¨NewObjectå®ä¾‹åŒ–ç»„ä»¶æ—¶ä¸èƒ½åœ¨æ‹¬å·å†…å¡«this, å¦åˆ™ç¼–è¾‘å™¨è¿è¡Œæ¸¸æˆé€€å‡ºæ—¶ä¼šå¥”æºƒ
+	//ÊµÀı»¯×é¼ş, ÕâÀïÓÃNewObjectÊµÀı»¯×é¼şÊ±²»ÄÜÔÚÀ¨ºÅÄÚÌîthis, ·ñÔò±à¼­Æ÷ÔËĞĞÓÎÏ·ÍË³öÊ±»á±¼À£
 	Model = NewObject<UDDModel>();
 	Message = NewObject<UDDMessage>();
 	Wealth = NewObject<UDDWealth>();
-	//é¿å…é”€æ¯
+	//±ÜÃâÏú»Ù
 	Model->AddToRoot();
 	Message->AddToRoot();
 	Wealth->AddToRoot();
-	//æŒ‡å®šæ¨¡ç»„
+	//Ö¸¶¨Ä£×é
 	Model->AssignModule(this);
 	Message->AssignModule(this);
 	Wealth->AssignModule(this);
@@ -35,73 +34,91 @@ void UDDModule::CreateManager()
 
 void UDDModule::ModuleInit()
 {
-	//è°ƒç”¨Initå‡½æ•°
+	//µ÷ÓÃInitº¯Êı
 	Model->ModelInit();
 	Message->MessageInit();
 	Wealth->WealthInit();
+
 }
 
 void UDDModule::ModuleBeginPlay()
 {
-	//ç»™WealthæŒ‡å®šèµ„æº
+	//¸øWealthÖ¸¶¨×ÊÔ´
 	Wealth->AssignData(WealthData);
-	//æŒ‡å®šå®Œèµ„æºå†å»è·‘BeginPlay,è°ƒç”¨ä¸‰ä¸ªç»„ä»¶çš„BeginPlayå‡½æ•°
+	//µ÷ÓÃBeginPlay
 	Model->ModelBeginPlay();
 	Message->MessageBeginPlay();
 	Wealth->WealthBeginPlay();
+
 }
 
 void UDDModule::ModuleTick(float DeltaSeconds)
 {
-	//è°ƒç”¨æ•°æ®çš„Tickå‡½æ•°
+	//µ÷ÓÃTick
 	Model->ModelTick(DeltaSeconds);
-	//è°ƒç”¨èµ„æºçš„Tickå‡½æ•°
 	Wealth->WealthTick(DeltaSeconds);
-	//è°ƒç”¨æ¶ˆæ¯çš„Tickå‡½æ•°
 	Message->MessageTick(DeltaSeconds);
-}
 
-
-void UDDModule::RegisterObject(IDDOO* Object)
-{
-	//æ³¨å†Œå¯¹è±¡åˆ°æ•°æ®ç»„ä»¶
-	Model->RegisterObject(Object);
-	//æŠŠè‡ªå·±æ³¨å†Œåˆ°å¯¹è±¡çš„æ¨¡ç»„
-	Object->AssignModule(this);
 }
 
 void UDDModule::ChangeModuleType(FName ModuleType)
 {
 	ModuleIndex = DDH::GetEnumIndexFromName(ModuleType.ToString(), GetFName());
 
-	if (ModuleIndex < 0) {
+	if (ModuleIndex < 0)
 		DDH::Debug() << "Generate Module Index Error --> " << GetName() << DDH::Endl();
-	}
-	/*else {
-		DDHelper::Debug(GetName() + FString(" Generate Module Index As --> ") + FString::FromInt(ModuleIndex), 120.f);
-	}*/
+}
+
+void UDDModule::RegisterObject(IDDOO* ObjectInst)
+{
+	//×¢²á¶ÔÏóµ½Êı¾İ×é¼ş
+	Model->RegisterObject(ObjectInst);
+	//°Ñ×Ô¼º×¢²áµ½¶ÔÏóµÄÄ£×é
+	ObjectInst->AssignModule(this);
+}
+
+void UDDModule::ChildDestroy(FName ObjectName)
+{
+	Model->DestroyObject(ObjectName);
+}
+
+void UDDModule::DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->DestroyObject(Agreement, TargetNameGroup);
+}
+
+void UDDModule::EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->EnableObject(Agreement, TargetNameGroup);
+}
+
+void UDDModule::DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup)
+{
+	Model->DisableObject(Agreement, TargetNameGroup);
 }
 
 void UDDModule::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
 {
-	//è°ƒç”¨Moduleçš„UFunction
+	//µ÷ÓÃModuleµÄUFuntion
 	UFunction* ExeFunc = FindFunction(Agreement.FunctionName);
-	//å¦‚æœæ–¹æ³•å­˜åœ¨å°±æ‰§è¡Œ
-	if (ExeFunc) {
-		//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+	//Èç¹û·½·¨´æÔÚ
+	if (ExeFunc)
+	{
+		//ÉèÖÃµ÷ÓÃ³É¹¦
 		Param->CallResult = ECallResult::Succeed;
-		//è°ƒç”¨æ–¹æ³•
+		//µ÷ÓÃ·½·¨
 		ProcessEvent(ExeFunc, Param->ParamPtr);
 	}
-	else {
-		//æ–¹æ³•ä¸å­˜åœ¨å°±è®¾ç½®ç»“æœä¸ºNoModFunc
+	else
+	{
+		//ÉèÖÃ·½·¨²»´æÔÚ
 		Param->CallResult = ECallResult::NoFunction;
 	}
 }
 
 void UDDModule::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//åŒºåˆ†ç±»å‹æ‰§è¡Œæ”¾å°„æ–¹æ³•
+	//Çø·ÖÀàĞÍÖ´ĞĞ·ÅÉä·½·¨
 	switch (Agreement.AgreementType)
 	{
 	case EAgreementType::SelfObject:
@@ -135,9 +152,9 @@ bool UDDModule::StopCoroutine(FName ObjectName, FName CoroName)
 	return Message->StopCoroutine(ObjectName, CoroName);
 }
 
-void UDDModule::StopAllCoroutine(FName ObjectName)
+void UDDModule::StopAllCorotine(FName ObjectName)
 {
-	return Message->StopAllCoroutine(ObjectName);
+	return Message->StopAllCorotine(ObjectName);
 }
 
 bool UDDModule::StartInvoke(FName ObjectName, FName InvokeName, DDInvokeTask* InvokeTask)
@@ -155,59 +172,9 @@ void UDDModule::StopAllInvoke(FName ObjectName)
 	Message->StopAllInvoke(ObjectName);
 }
 
-void UDDModule::IterGatherModule(UDDModule* Module, TArray<UDDModule*>& GatherGroup)
-{
-	GatherGroup.Add(Module);
-	for (int i = 0; i < Module->GetAttachChildren().Num(); ++i)
-		if (Cast<UDDModule>(Module->GetAttachChildren()[i]))
-			IterGatherModule(Cast<UDDModule>(Module->GetAttachChildren()[i]), GatherGroup);
-}
-
 void UDDModule::UnBindInput(FName ObjectName)
 {
 	Message->UnBindInput(ObjectName);
-}
-
-void UDDModule::ChildDestroy(FName ObjectName)
-{
-	TArray<FName> ObjectNameGroup;
-	ObjectNameGroup.Add(ObjectName);
-	Model->DestroyObject(EAgreementType::SelfObject, ObjectNameGroup);
-}
-
-void UDDModule::BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform)
-{
-	Wealth->BuildSingleClassWealth(WealthType, WealthName, ObjectName, FunName, SpawnTransform);
-}
-
-void UDDModule::BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
-{
-	Wealth->BuildMultiClassWealth(WealthType, WealthName, Amount, ObjectName, FunName, SpawnTransforms);
-}
-
-void UDDModule::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
-{
-	Wealth->BuildKindClassWealth(WealthType, WealthKind, ObjectName, FunName, SpawnTransforms);
-}
-
-void UDDModule::LoadClassWealth(FName WealthName, FName ClassName, FName FunName)
-{
-	Wealth->LoadClassWealth(WealthName, ClassName, FunName);
-}
-
-void UDDModule::LoadClassWealthKind(FName WealthKind, FName ClassName, FName FunName)
-{
-	Wealth->LoadClassWealthKind(WealthKind, ClassName, FunName);
-}
-
-void UDDModule::LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName)
-{
-	Wealth->LoadObjectWealth(WealthName, ObjectName, FunName);
-}
-
-void UDDModule::LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName)
-{
-	Wealth->LoadObjectWealthKind(WealthKind, ObjectName, FunName);
 }
 
 FWealthURL* UDDModule::GainWealthURL(FName WealthName)
@@ -220,148 +187,207 @@ void UDDModule::GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL)
 	Wealth->GainWealthURL(WealthKind, OutURL);
 }
 
+void UDDModule::LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName)
+{
+	Wealth->LoadObjectWealth(WealthName, ObjectName, FunName);
+}
+
+void UDDModule::LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName)
+{
+	Wealth->LoadObjectWealthKind(WealthKind, ObjectName, FunName);
+}
+
+void UDDModule::LoadClassWealth(FName WealthName, FName ObjectName, FName FunName)
+{
+	Wealth->LoadClassWealth(WealthName, ObjectName, FunName);
+}
+
+void UDDModule::LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName)
+{
+	Wealth->LoadClassWealthKind(WealthKind, ObjectName, FunName);
+}
+
+void UDDModule::BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform)
+{
+	Wealth->BuildSingleClassWealth(WealthType, WealthName, ObjectName, FunName, SpawnTransform);
+}
+
+void UDDModule::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
+{
+	Wealth->BuildKindClassWealth(WealthType, WealthKind, ObjectName, FunName, SpawnTransforms);
+}
+
+void UDDModule::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
+{
+	Wealth->BuildMultiClassWealth(WealthType, WealthName, Amount, ObjectName, FunName, SpawnTransforms);
+}
+
 void UDDModule::ExecuteSelfObject(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
 	TArray<IDDOO*> TargetObjectGroup;
-	//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//´ÓÊı¾İÄ£×é»ñÈ¡¶ÔÏó×é
 	Model->GetSelfObject(Agreement.ObjectGroup, TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}
-	//å¦‚æœè·å–çš„å¯¹è±¡ä¸ä¼ å…¥çš„å¯¹è±¡åæ•°é‡ä¸ç›¸ç­‰,è¿™ä¸ªä¼˜å…ˆçº§æœ€é«˜
-	if (TargetObjectGroup.Num() != Agreement.ObjectGroup.Num()) Param->CallResult = ECallResult::LackObject;
+	//Èç¹û»ñÈ¡µÄ¶ÔÏóÓĞÈ±Ê§, ÉèÖÃ½á¹ûÎª¶ÔÏóÈ±Ê§, Õâ¸ö½á¹ûµÄÓÅÏÈ¼¶×î¸ß
+	if (TargetObjectGroup.Num() != Agreement.ObjectGroup.Num())
+		Param->CallResult = ECallResult::LackObject;
 }
 
 void UDDModule::ExecuteOtherObject(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
 	TArray<IDDOO*> TargetObjectGroup;
-	//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//´ÓÊı¾İ×é¼ş»ñÈ¡¶ÔÏó×é
 	int32 TotalObjectNum = Model->GetOtherObject(Agreement.ObjectGroup, TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}
-	//å¦‚æœæ•°é‡å’Œä¸ç›¸åŒè¯´æ˜æ•°æ®ä¸åŒ¹é…
-	if (Agreement.ObjectGroup.Num() + TargetObjectGroup.Num() != TotalObjectNum)Param->CallResult = ECallResult::LackObject;
+	//ÅĞ¶Ï¶ÔÏóÓĞÃ»ÓĞÈ±Ê§
+	if (Agreement.ObjectGroup.Num() + TargetObjectGroup.Num() != TotalObjectNum)
+		Param->CallResult = ECallResult::LackObject;
 }
 
 void UDDModule::ExecuteClassOtherObject(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
 	TArray<IDDOO*> TargetObjectGroup;
-	//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//´ÓÊı¾İ×é¼ş»ñÈ¡¶ÔÏó×é
 	int32 TotalClassNum = Model->GetClassOtherObject(Agreement.ObjectGroup, TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}
-	//å¦‚æœæ•°é‡å’Œä¸ç›¸åŒè¯´æ˜æ•°æ®ä¸åŒ¹é…
-	if (Agreement.ObjectGroup.Num() + TargetObjectGroup.Num() != TotalClassNum)Param->CallResult = ECallResult::LackObject;
+	//ÅĞ¶Ï¶ÔÏóÈ±Ê§
+	if (Agreement.ObjectGroup.Num() + TargetObjectGroup.Num() != TotalClassNum)
+		Param->CallResult = ECallResult::LackObject;
 }
 
 void UDDModule::ExecuteSelfClass(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
 	TArray<IDDOO*> TargetObjectGroup;
-	//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//´ÓÊı¾İ×é¼ş»ñÈ¡¶ÔÏó×é
 	Model->GetSelfClass(Agreement.ObjectGroup, TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}
-	//å¦‚æœæ•°é‡ä¸º0
-	if (TargetObjectGroup.Num() == 0) Param->CallResult = ECallResult::LackObject;
+	//ÅĞ¶Ï¶ÔÏóÈ±Ê§
+	if(TargetObjectGroup.Num() == 0)
+		Param->CallResult = ECallResult::LackObject;
 }
 
 void UDDModule::ExecuteOtherClass(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
 	TArray<IDDOO*> TargetObjectGroup;
-	//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//´ÓÊı¾İ×é¼ş»ñÈ¡¶ÔÏó×é
 	Model->GetOtherClass(Agreement.ObjectGroup, TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}
-	//å¦‚æœæ•°é‡ä¸º0
-	if (TargetObjectGroup.Num() == 0) Param->CallResult = ECallResult::LackObject;
+	//ÅĞ¶Ï¶ÔÏóÈ±Ê§
+	if (TargetObjectGroup.Num() == 0)
+		Param->CallResult = ECallResult::LackObject;
 }
 
 void UDDModule::ExecuteAll(DDObjectAgreement Agreement, DDParam* Param)
 {
-	//å®šä¹‰å­˜å‚¨ç›®æ ‡å¯¹è±¡çš„ç»„
-	TArray<IDDOO*> TargetObjectGroup;//ä»æ•°æ®ç»„ä»¶è·å–å¯¹è±¡ç»„
+	//¶¨Òå´æ´¢Ä¿±ê¶ÔÏóµÄ×é
+	TArray<IDDOO*> TargetObjectGroup;
+	//´ÓÊı¾İ×é¼ş»ñÈ¡¶ÔÏó×é
 	Model->GetAll(TargetObjectGroup);
-	//å¾ªç¯è°ƒç”¨äº‹ä»¶
-	for (int i = 0; i < TargetObjectGroup.Num(); ++i) {
-		//è·å–æ–¹æ³•
+	//Ñ­»·µ÷ÓÃ·´ÉäÊÂ¼ş
+	for (int i = 0; i < TargetObjectGroup.Num(); ++i)
+	{
+		//»ñÈ¡·´Éä·½·¨
 		UFunction* ExeFunc = TargetObjectGroup[i]->GetObjectBody()->FindFunction(Agreement.FunctionName);
-		if (ExeFunc) {
-			//è®¾ç½®ä¸ºè°ƒç”¨æˆåŠŸ,åœ¨è°ƒç”¨å‰æ‰§è¡Œé¿å…åœ¨æ–¹æ³•å†…éƒ¨å†ä¿®æ”¹
+		if (ExeFunc)
+		{
+			//ÉèÖÃµ÷ÓÃ³É¹¦
 			Param->CallResult = ECallResult::Succeed;
-			//æ‰§è¡Œæ–¹æ³•
+			//Ö´ĞĞ·½·¨
 			TargetObjectGroup[i]->GetObjectBody()->ProcessEvent(ExeFunc, Param->ParamPtr);
 		}
-		else {
-			//å¦‚æœæ²¡æœ‰æ–¹æ³•å°±è®¾ç½®è°ƒç”¨ç»“æœä¸ºæ²¡æœ‰å¯¹åº”æ–¹æ³•
+		else
+		{
+			//ÉèÖÃÕÒ²»µ½·½·¨
 			Param->CallResult = ECallResult::NoFunction;
 		}
 	}

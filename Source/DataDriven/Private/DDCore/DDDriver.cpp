@@ -1,17 +1,14 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDDriver.h"
 #include "DDOO.h"
-#include "DDCenterModule.h"
 #include "Kismet/GameplayStatics.h"
-
-
-
 
 // Sets default values
 ADDDriver::ADDDriver()
 {
-	// å…è®¸å¸§è¿è¡Œ
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
@@ -23,44 +20,80 @@ ADDDriver::ADDDriver()
 
 void ADDDriver::PostInitializeComponents()
 {
-	//å…ˆè°ƒç”¨ä¸€æ¬¡çˆ¶ç±»
 	Super::PostInitializeComponents();
-	//æ³¨å†Œä¸–ç•Œå’ŒDriveråˆ°UDDCommonå•ä¾‹
-	UDDCommon::Get()->InitCommon(this);
-	//åœ¨æ¸¸æˆè¿è¡Œä¹‹å‰å¿…é¡»è¿›è¡Œä¸€æ¬¡æ¨¡ç»„	IDçš„è®¾å®š, åœ¨è¿™é‡Œé¢ä¼šæ³¨å†Œå­æ¨¡ç»„åˆ°æ•°ç»„
+	//×¢²áDriverµ½UDDCommonµ¥Àı
+	UDDCommon::Get()->InitDriver(this);
+	//ÔÚÓÎÏ·ÔËĞĞÖ®Ç°±ØĞë½øĞĞÒ»´ÎÄ£×é	IDµÄÉè¶¨, ÔÚÕâÀïÃæ»á×¢²á×ÓÄ£×éµ½Êı×é
 	Center->IterChangeModuleType(Center, ModuleType);
-	//æŒ‡å®šå®Œæ¨¡ç»„IDåæ”¶é›†æ¨¡ç»„åˆ°æ€»æ•°ç»„
+	//Ö¸¶¨ÍêÄ£×éIDºóÊÕ¼¯Ä£×éµ½×ÜÊı×é
 	Center->TotalGatherModule(ModuleType);
-	//åˆ›å»ºManagerç»„ä»¶ä»¥åŠä¸‹å±ç»„ä»¶
+	//´´½¨ËùÓÃÄ£×éµÄÄ£¿é
 	Center->IterCreateManager(Center);
 }
 
+// Called when the game starts or when spawned
 void ADDDriver::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//æ³¨å†ŒGamePlayåˆ°æ¡†æ¶
+	//×¢²áGamePlayµ½¿ò¼Ü
 	RegisterGamePlay();
 
-	//è°ƒç”¨ä¸­å¤®æ¨¡ç»„çš„ModuleInitè¿­ä»£
+	//µü´úµ÷ÓÃInitº¯Êı
 	Center->IterModuleInit(Center);
 }
 
+void ADDDriver::RegisterGamePlay()
+{
+	//»ñÈ¡GameInstance
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
+	//Èç¹û´æÔÚ²¢ÇÒ¼Ì³Ğ×ÔIDDOO,¾Í×¢²á½øCenter,ÀàÃûºÍ¶ÔÏóÃû¶¼ÊÇGameInstance
+	if (GameInstance && Cast<IDDOO>(GameInstance))
+		Cast<IDDOO>(GameInstance)->RegisterToModule("Center", "GameInstacne", "GameInstacne");
+
+	//»ñÈ¡Controller²¢ÇÒ×¢²áµ½DDCommon
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	//×¢²áµ½Common
+	if (!PlayerController)
+		DDH::Debug() << "No PlayerController" << DDH::Endl();
+	else
+		UDDCommon::Get()->InitController(PlayerController);
+}
+
+// Called every frame
 void ADDDriver::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (!IsBeginPlay) {
-		//è°ƒç”¨ä¸­å¤®æ¨¡ç»„çš„BeginPlayè¿­ä»£
+	if (!IsBeginPlay)
+	{
+		//µü´úµ÷ÓÃBeginº¯Êı
 		Center->IterModuleBeginPlay(Center);
-		//ç¬¬ä¸€å¸§è¿è¡Œå…¨ä½“çš„BeginPlayå‡½æ•°
+		//Ö»Ö´ĞĞµÚÒ»Ö¡
 		IsBeginPlay = true;
 	}
-	else {
-		//è°ƒç”¨ä¸­å¤®æ¨¡ç»„çš„Tickè¿­ä»£
+	else
+		//µü´úµ÷ÓÃTickº¯Êı
 		Center->IterModuleTick(Center, DeltaTime);
-	}
 }
+
+bool ADDDriver::RegisterToModule(IDDOO* ObjectInst)
+{
+	//µ÷ÓÃÖĞÑëÄ£×é½øĞĞ×¢²á
+	return Center->RegisterToModule(ObjectInst);
+}
+
+#if WITH_EDITOR
+
+void ADDDriver::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	if (PropertyChangedEvent.Property && PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ADDDriver, ModuleType))
+		Center->IterChangeModuleType(Center, ModuleType);
+}
+
+#endif
 
 void ADDDriver::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
 {
@@ -72,36 +105,4 @@ void ADDDriver::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
 	Center->AllotExecuteFunction(Agreement, Param);
 }
 
-#if WITH_EDITOR
-void ADDDriver::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	if (PropertyChangedEvent.Property &&
-		PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ADDDriver, ModuleType))
-	{
-		Center->IterChangeModuleType(Center, ModuleType);
-	}
-}
-#endif
-
-bool ADDDriver::RegisterToModule(IDDOO* Object)
-{
-	//è°ƒç”¨ä¸­å¤®æ¨¡ç»„çš„æ³¨å†Œå¯¹è±¡åŠŸèƒ½
-	return Center->RegisterToModule(Object);
-}
-
-void ADDDriver::RegisterGamePlay()
-{
-	//è·å–GameInstance
-	UGameInstance* GameInst = UGameplayStatics::GetGameInstance(GetWorld());
-	//å¦‚æœå­˜åœ¨å¹¶ä¸”ç»§æ‰¿è‡ªIDDOO,å°±æ³¨å†Œè¿›Center,ç±»åå’Œå¯¹è±¡åéƒ½æ˜¯GameInstance
-	if (GameInst && Cast<IDDOO>(GameInst))
-		Cast<IDDOO>(GameInst)->RegisterToModule("Center", "GameInstacne", "GameInstacne");
- 
-	//è·å–Controllerå¹¶ä¸”æ³¨å†Œåˆ°DDCommon, ç”¨äºæä¾›äº‹ä»¶è°ƒç”¨æ¥å£
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!PlayerController) DDH::Debug() << "No PlayerController" << DDH::Endl();
-	UDDCommon::Get()->InitController(PlayerController);
-}
 

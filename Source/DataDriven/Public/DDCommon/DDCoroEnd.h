@@ -2149,6 +2149,8 @@ if (CoroStack[61]->IsActive) goto DDCORO_LABEL_61;
 if (CoroStack[62]->IsActive) goto DDCORO_LABEL_62;
 if (CoroStack[63]->IsActive) goto DDCORO_LABEL_63;
 #	endif
+#else
+#error No Include DDCORO_BEGIN()
 #endif
 #ifdef DDCORO_WORK_END
 DDCORO_WORK_END

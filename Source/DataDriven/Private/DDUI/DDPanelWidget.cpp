@@ -1,9 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDPanelWidget.h"
 
+FName UDDPanelWidget::PanelHiddenName(TEXT("PanelHiddenTask"));
+
+int32 UDDPanelWidget::UIFrameModuleIndex(1);
 
 FName UDDPanelWidget::UIFrameName(TEXT("UIFrame"));
+
+FName UDDPanelWidget::ExitCallBackName(TEXT("ExitCallBack"));
 
 FName UDDPanelWidget::ShowUIPanelName(TEXT("ShowUIPanel"));
 
@@ -11,32 +17,26 @@ FName UDDPanelWidget::HideUIPanelName(TEXT("HideUIPanel"));
 
 FName UDDPanelWidget::ExitUIPanelName(TEXT("ExitUIPanel"));
 
-FName UDDPanelWidget::ExitCallBackName(TEXT("ExitCallBack"));
-
-bool UDDPanelWidget::Initialize()
-{
-	if (!Super::Initialize()) return false;
-
-	//UIFrameé»˜è®¤æ”¾åœ¨ç¬¬äºŒä¸ªæ¨¡ç»„, ä¸€èˆ¬åºå·ä¸º Center = 0 , HUD = 1
-	UIFrameModuleIndex = 1;
-
-	return true;
-}
+FName UDDPanelWidget::AdvanceLoadPanelName(TEXT("AdvanceLoadPanel"));
 
 void UDDPanelWidget::PanelEnter()
 {
-	//è®¾ç½®Visible
 	SetVisibility(ESlateVisibility::Visible);
-	//ç›´æ¥è¿è¡Œè¿›å…¥åŠ¨ç”»
+	//µ÷ÓÃ½øÈë½çÃæ¶¯»­
 	DisplayEnterMovie();
 }
 
 void UDDPanelWidget::PanelDisplay()
 {
-	//è®¾ç½®Visible
 	SetVisibility(ESlateVisibility::Visible);
-	//è¿è¡Œè¿›å…¥åŠ¨ç”»
+	//µ÷ÓÃ½øÈë½çÃæ¶¯»­
 	DisplayEnterMovie();
+}
+
+void UDDPanelWidget::PanelHidden()
+{
+	//ÔËĞĞÍêÒÆ³ö½çÃæ¶¯»­ºóµ÷ÓÃÒş²Øº¯Êı
+	InvokeDelay(PanelHiddenName, DisplayLeaveMovie(), this, &UDDPanelWidget::SetSelfHidden);
 }
 
 void UDDPanelWidget::PanelFreeze()
@@ -49,19 +49,33 @@ void UDDPanelWidget::PanelResume()
 
 }
 
-void UDDPanelWidget::PanelHidden()
-{
-	//è¿è¡Œå®ŒåŠ¨ç”»åå»¶æ—¶è®¾ç½®Hidden
-	InvokeDelay("PanelHidden", DisplayLeaveMove(), this, &UDDPanelWidget::SetSelfHidden);
-}
-
 void UDDPanelWidget::PanelExit()
 {
-	//è¿›è¡Œå»¶æ—¶åŠ¨ç”»å’Œå›è°ƒ, å¦‚æœå·²ç»æ˜¯éšè—çŠ¶æ€å°±ç›´æ¥è¿›è¡Œå›è°ƒ, ä¸æ’­æ”¾åŠ¨ç”»äº†
+	//Èç¹ûUIÃæ°åÕıÔÚÏÔÊ¾
 	if (GetVisibility() != ESlateVisibility::Hidden)
-		InvokeDelay("PanelHidden", DisplayLeaveMove(), this, &UDDPanelWidget::RemoveCallBack);
+		InvokeDelay(PanelHiddenName, DisplayLeaveMovie(), this, &UDDPanelWidget::RemoveCallBack);
 	else
 		RemoveCallBack();
+}
+
+void UDDPanelWidget::SetSelfHidden()
+{
+	SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UDDPanelWidget::RemoveCallBack()
+{
+	//»ñÈ¡¸¸¿Ø¼ş
+	UPanelWidget* WorkLayout = GetParent();
+	//ÒÑ¾­¼ÓÔØÁËUIÃæ°å, µ«ÊÇÒ»Ö±Ã»ÓĞÔËĞĞÏÔÊ¾ÃüÁîµÄÇé¿öÏÂ, WorkLayoutÎª¿Õ
+	if (WorkLayout)
+	{
+		RemoveFromParent();
+		//¸æËßUI¹ÜÀíÆ÷´¦Àí¸¸¿Ø¼ş
+		ExitCallBack(UIFrameModuleIndex, UIFrameName, ExitCallBackName, UINature.LayoutType, WorkLayout);
+	}
+	//Ö´ĞĞÏú»Ù
+	DDDestroy();
 }
 
 void UDDPanelWidget::ShowSelfPanel()
@@ -79,6 +93,11 @@ void UDDPanelWidget::ExitSelfPanel()
 	ExitUIPanel(GetObjectName());
 }
 
+void UDDPanelWidget::AdvanceLoadPanel(FName PanelName)
+{
+	OperatorUIPanel(UIFrameModuleIndex, UIFrameName, AdvanceLoadPanelName, PanelName);
+}
+
 void UDDPanelWidget::ShowUIPanel(FName PanelName)
 {
 	OperatorUIPanel(UIFrameModuleIndex, UIFrameName, ShowUIPanelName, PanelName);
@@ -92,18 +111,5 @@ void UDDPanelWidget::HideUIPanel(FName PanelName)
 void UDDPanelWidget::ExitUIPanel(FName PanelName)
 {
 	OperatorUIPanel(UIFrameModuleIndex, UIFrameName, ExitUIPanelName, PanelName);
-}
-
-void UDDPanelWidget::RemoveCallBack()
-{
-	UPanelWidget* WorkLayout = GetParent();
-	RemoveFromParent();
-	ExitCallBack(UIFrameModuleIndex, UIFrameName, ExitCallBackName, UINature.LayoutType, WorkLayout);
-	DDDestroy();
-}
-
-void UDDPanelWidget::SetSelfHidden()
-{
-	SetVisibility(ESlateVisibility::Hidden);
 }
 

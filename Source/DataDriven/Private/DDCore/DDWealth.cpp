@@ -1,145 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDWealth.h"
-#include "DDObject.h"
-#include "DDActor.h"
-#include "DDPawn.h"
-#include "DDCharacter.h"
-#include "DDUserWidget.h"
+#include "DDOO.h"
+#include "Blueprint/UserWidget.h"
 
-//åŠ è½½å•ä¸ªèµ„æºçš„èŠ‚ç‚¹
-struct ClassSingleLoadNode
-{
-	//èµ„æºå¥æŸ„
-	TSharedPtr<FStreamableHandle> WealthHandle;
-	//èµ„æºç»“æ„ä½“
-	FClassWealthEntry* WealthEntry;
-	//ç›®æ ‡å¯¹è±¡å
-	FName ObjectName;
-	//æ–¹æ³•å
-	FName FunName;
-	//ç”Ÿæˆä½ç½®
-	FTransform SpawnTransform;
-	//æ˜¯å¦åªåŠ è½½Class
-	bool LoadClass;
-	//æ„é€ å‡½æ•°
-	ClassSingleLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, FName InObjectName, FName InFunName, FTransform InTransform)
-	{
-		WealthHandle = InWealthHandle;
-		WealthEntry = InWealthEntry;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		SpawnTransform = InTransform;
-		LoadClass = false;
-	}
-	ClassSingleLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, FName InObjectName, FName InFunName)
-	{
-		WealthHandle = InWealthHandle;
-		WealthEntry = InWealthEntry;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		LoadClass = true;
-	}
-};
-
-//åŠ è½½å¤šä¸ªåŒç±»èµ„æºçš„èŠ‚ç‚¹
-struct ClassMultiLoadNode
-{
-	//èµ„æºå¥æŸ„
-	TSharedPtr<FStreamableHandle> WealthHandle;
-	//èµ„æºç»“æ„ä½“
-	FClassWealthEntry* WealthEntry;
-	//åŠ è½½æ•°é‡
-	int32 Amount;
-	//ç›®æ ‡å¯¹è±¡å
-	FName ObjectName;
-	//æ–¹æ³•å
-	FName FunName;
-	//ç”Ÿæˆä½ç½®
-	TArray<FTransform> SpawnTransforms;
-	//ä¿å­˜ç”Ÿæˆçš„é˜Ÿåˆ—, æ ¹æ®ç±»å‹æ¥é€‰æ‹©
-	TArray<UObject*> ObjectGroup;
-	TArray<AActor*> ActorGroup;
-	TArray<UUserWidget*> WidgetGroup;
-	//æ„é€ å‡½æ•°ä¸€  :   æœªåŠ è½½æ—¶ä½¿ç”¨
-	ClassMultiLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, int32 InAmount, FName InObjectName, FName InFunName, TArray<FTransform> InTransforms)
-	{
-		WealthHandle = InWealthHandle;
-		WealthEntry = InWealthEntry;
-		Amount = InAmount;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		SpawnTransforms = InTransforms;
-	}
-	//æ„é€ å‡½æ•°äºŒ  :  å·²ç»åŠ è½½æ—¶ä½¿ç”¨
-	ClassMultiLoadNode(FClassWealthEntry* InWealthEntry, int32 InAmount, FName InObjectName, FName InFunName, TArray<FTransform> InTransforms)
-	{
-		WealthEntry = InWealthEntry;
-		Amount = InAmount;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		SpawnTransforms = InTransforms;
-	}
-};
-
-
-
-
-//åŠ è½½åŒä¸ªWealthKindçš„èŠ‚ç‚¹
-struct ClassKindLoadNode
-{
-	//èµ„æºå¥æŸ„
-	TSharedPtr<FStreamableHandle> WealthHandle;
-	//è¿˜æ²¡æœ‰åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> UnLoadWealthEntry;
-	//å·²ç»åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> LoadWealthEntry;
-	//ç›®æ ‡å¯¹è±¡å
-	FName ObjectName;
-	//æ–¹æ³•å
-	FName FunName;
-	//ç”Ÿæˆä½ç½®
-	TArray<FTransform> SpawnTransforms;
-	//æ˜¯å¦åªåŠ è½½Class
-	bool LoadClass;
-	//ä¿å­˜ç”Ÿæˆçš„é˜Ÿåˆ—
-	TArray<FName> NameGroup;
-	TArray<UObject*> ObjectGroup;
-	TArray<AActor*> ActorGroup;
-	TArray<UUserWidget*> WidgetGroup;
-	//æ„é€ å‡½æ•°
-	ClassKindLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, TArray<FClassWealthEntry*>& InUnLoadWealthEntry, TArray<FClassWealthEntry*>& InLoadWealthEntry, FName InObjectName, FName InFunName, TArray<FTransform> InTransforms)
-	{
-		WealthHandle = InWealthHandle;
-		UnLoadWealthEntry = InUnLoadWealthEntry;
-		LoadWealthEntry = InLoadWealthEntry;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		SpawnTransforms = InTransforms;
-		LoadClass = false;
-	}
-	ClassKindLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, TArray<FClassWealthEntry*>& InUnLoadWealthEntry, TArray<FClassWealthEntry*>& InLoadWealthEntry, FName InObjectName, FName InFunName)
-	{
-		WealthHandle = InWealthHandle;
-		UnLoadWealthEntry = InUnLoadWealthEntry;
-		LoadWealthEntry = InLoadWealthEntry;
-		ObjectName = InObjectName;
-		FunName = InFunName;
-		LoadClass = true;
-	}
-};
 
 struct ObjectSingleLoadNode
 {
-	//èµ„æºå¥æŸ„
+	//¼ÓÔØ¾ä±ú
 	TSharedPtr<FStreamableHandle> WealthHandle;
-	//èµ„æºç»“æ„ä½“
+	//×ÊÔ´½á¹¹Ìå
 	FObjectWealthEntry* WealthEntry;
-	//ç›®æ ‡å¯¹è±¡å
+	//ÇëÇó¶ÔÏóÃû
 	FName ObjectName;
-	//æ–¹æ³•å
+	//»Øµ÷·½·¨Ãû
 	FName FunName;
-	//æ„é€ å‡½æ•°
+	//¹¹Ôìº¯Êı
 	ObjectSingleLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FObjectWealthEntry* InWealthEntry, FName InObjectName, FName InFunName)
 	{
 		WealthHandle = InWealthHandle;
@@ -149,20 +26,20 @@ struct ObjectSingleLoadNode
 	}
 };
 
-//åŠ è½½åŒä¸ªWealthKindçš„èŠ‚ç‚¹
+
 struct ObjectKindLoadNode
 {
-	//èµ„æºå¥æŸ„
+	//¼ÓÔØ¾ä±ú
 	TSharedPtr<FStreamableHandle> WealthHandle;
-	//è¿˜æ²¡æœ‰åŠ è½½çš„èµ„æº
+	//Ã»ÓĞ¼ÓÔØµÄ×ÊÔ´
 	TArray<FObjectWealthEntry*> UnLoadWealthEntry;
-	//å·²ç»åŠ è½½çš„èµ„æº
+	//ÒÑ¾­¼ÓÔØµÄ×ÊÔ´µÄÊı×é
 	TArray<FObjectWealthEntry*> LoadWealthEntry;
-	//ç›®æ ‡å¯¹è±¡å
+	//ÇëÇó¶ÔÏóÃû
 	FName ObjectName;
-	//æ–¹æ³•å
+	//»Øµ÷·½·¨Ãû
 	FName FunName;
-	//æ„é€ å‡½æ•°
+	//¹¹Ôìº¯Êı
 	ObjectKindLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, TArray<FObjectWealthEntry*>& InUnLoadWealthEntry, TArray<FObjectWealthEntry*>& InLoadWealthEntry, FName InObjectName, FName InFunName)
 	{
 		WealthHandle = InWealthHandle;
@@ -174,470 +51,205 @@ struct ObjectKindLoadNode
 };
 
 
+struct ClassSingleLoadNode
+{
+	//¼ÓÔØ¾ä±ú
+	TSharedPtr<FStreamableHandle> WealthHandle;
+	//×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* WealthEntry;
+	//ÇëÇó¶ÔÏóÃû
+	FName ObjectName;
+	//»Øµ÷·½·¨Ãû
+	FName FunName;
+	//Éú³ÉÎ»ÖÃ
+	FTransform SpawnTransform;
+	//ÊÇ·ñÖ»¼ÓÔØUClass
+	bool IsLoadClass;
+	//¹¹Ôìº¯Êı
+	ClassSingleLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, FName InObjectName, FName InFunName)
+	{
+		WealthHandle = InWealthHandle;
+		WealthEntry = InWealthEntry;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		IsLoadClass = true;
+	}
+	ClassSingleLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, FName InObjectName, FName InFunName, FTransform InSpawnTransform)
+	{
+		WealthHandle = InWealthHandle;
+		WealthEntry = InWealthEntry;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		SpawnTransform = InSpawnTransform;
+		IsLoadClass = false;
+	}
+};
+
+
+struct ClassKindLoadNode
+{
+	//¼ÓÔØ¾ä±ú
+	TSharedPtr<FStreamableHandle> WealthHandle;
+	//Ã»ÓĞ¼ÓÔØµÄ×ÊÔ´
+	TArray<FClassWealthEntry*> UnLoadWealthEntry;
+	//ÒÑ¾­¼ÓÔØµÄ×ÊÔ´µÄÊı×é
+	TArray<FClassWealthEntry*> LoadWealthEntry;
+	//ÇëÇó¶ÔÏóÃû
+	FName ObjectName;
+	//»Øµ÷·½·¨Ãû
+	FName FunName;
+	//Éú³ÉÎ»ÖÃ
+	TArray<FTransform> SpawnTransforms;
+	//ÊÇ·ñÖ»¼ÓÔØUClass
+	bool IsLoadClass;
+	//±£´æÉú³ÉµÄ¶ÔÏóÓëÃû×Ö
+	TArray<FName> NameGroup;
+	TArray<UObject*> ObjectGroup;
+	TArray<AActor*> ActorGroup;
+	TArray<UUserWidget*> WidgetGroup;
+	//¹¹Ôìº¯Êı
+	ClassKindLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, TArray<FClassWealthEntry*>& InUnLoadWealthEntry, TArray<FClassWealthEntry*>& InLoadWealthEntry, FName InObjectName, FName InFunName)
+	{
+		WealthHandle = InWealthHandle;
+		UnLoadWealthEntry = InUnLoadWealthEntry;
+		LoadWealthEntry = InLoadWealthEntry;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		IsLoadClass = true;
+	}
+	ClassKindLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, TArray<FClassWealthEntry*>& InUnLoadWealthEntry, TArray<FClassWealthEntry*>& InLoadWealthEntry, FName InObjectName, FName InFunName, TArray<FTransform> InSpawnTransforms)
+	{
+		WealthHandle = InWealthHandle;
+		UnLoadWealthEntry = InUnLoadWealthEntry;
+		LoadWealthEntry = InLoadWealthEntry;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		SpawnTransforms = InSpawnTransforms;
+		IsLoadClass = false;
+	}
+};
+
+struct ClassMultiLoadNode
+{
+	//¼ÓÔØ¾ä±ú
+	TSharedPtr<FStreamableHandle> WealthHandle;
+	//×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* WealthEntry;
+	//ÇëÇó¶ÔÏóÃû
+	FName ObjectName;
+	//»Øµ÷·½·¨Ãû
+	FName FunName;
+	//Éú³ÉÊıÁ¿
+	int32 Amount;
+	//Éú³ÉÎ»ÖÃ
+	TArray<FTransform> SpawnTransforms;
+	//±£´æÉú³ÉµÄ¶ÔÏó
+	TArray<UObject*> ObjectGroup;
+	TArray<AActor*> ActorGroup;
+	TArray<UUserWidget*> WidgetGroup;
+	//¹¹Ôìº¯Êı, Î´¼ÓÔØÊ±Ê¹ÓÃ
+	ClassMultiLoadNode(TSharedPtr<FStreamableHandle> InWealthHandle, FClassWealthEntry* InWealthEntry, int32 InAmount, FName InObjectName, FName InFunName, TArray<FTransform> InSpawnTransforms)
+	{
+		WealthHandle = InWealthHandle;
+		WealthEntry = InWealthEntry;
+		Amount = InAmount;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		SpawnTransforms = InSpawnTransforms;
+	}
+	//¹¹Ôìº¯Êı, ÒÑ¼ÓÔØÊ±Ê¹ÓÃ
+	ClassMultiLoadNode(FClassWealthEntry* InWealthEntry, int32 InAmount, FName InObjectName, FName InFunName, TArray<FTransform> InSpawnTransforms)
+	{
+		WealthEntry = InWealthEntry;
+		Amount = InAmount;
+		ObjectName = InObjectName;
+		FunName = InFunName;
+		SpawnTransforms = InSpawnTransforms;
+	}
+};
+
+
 void UDDWealth::WealthBeginPlay()
 {
-	//å¾ªç¯éå†ç”Ÿæˆé»˜è®¤èµ„æº
+	//±éÀú×Ô¶¯Éú³É¶ÔÏó
 	for (int i = 0; i < WealthData.Num(); ++i)
 	{
-		//ç”ŸæˆObjectèµ„æº
+		//Éú³ÉObject¶ÔÏó
 		for (int j = 0; j < WealthData[i]->AutoObjectData.Num(); ++j)
 		{
-			//æ ¹æ®è·å–åˆ°çš„UClassç”ŸæˆæŒ‡å®šçš„DDèµ„æº
-			UDDObject* NewObj = NewObject<UDDObject>(this, WealthData[i]->AutoObjectData[j].WealthClass);
+			//¸ù¾İ»ñÈ¡µ½µÄUClassÉú³ÉÖ¸¶¨µÄ¶ÔÏó
+			UObject* NewObj = NewObject<UObject>(this, WealthData[i]->AutoObjectData[j].WealthClass);
 			NewObj->AddToRoot();
-			NewObj->RegisterToModule(
-				WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
-				WealthData[i]->AutoObjectData[j].ObjectName,
-				WealthData[i]->AutoObjectData[j].ClassName
-			);
+			IDDOO* InstPtr = Cast<IDDOO>(NewObj);
+			if (InstPtr)
+			{
+				InstPtr->RegisterToModule(
+					WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
+					WealthData[i]->AutoObjectData[j].ObjectName,
+					WealthData[i]->AutoObjectData[j].ClassName
+				);
+			}
 		}
-		//ç”ŸæˆActorèµ„æº
+		//Éú³ÉActor¶ÔÏó
 		for (int j = 0; j < WealthData[i]->AutoActorData.Num(); ++j)
 		{
-			//æ ¹æ®è·å–åˆ°çš„UClassç”ŸæˆæŒ‡å®šçš„DDèµ„æº
-			ADDActor* NewAct = GetDDWorld()->SpawnActor<ADDActor>(WealthData[i]->AutoActorData[j].WealthClass, WealthData[i]->AutoActorData[j].Transform);
-			NewAct->RegisterToModule(
-				WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
-				WealthData[i]->AutoActorData[j].ObjectName,
-				WealthData[i]->AutoActorData[j].ClassName
-			);
+			AActor* NewAct = GetDDWorld()->SpawnActor<AActor>(WealthData[i]->AutoActorData[j].WealthClass, WealthData[i]->AutoActorData[j].Transform);
+			IDDOO* InstPtr = Cast<IDDOO>(NewAct);
+			if (InstPtr)
+			{
+				InstPtr->RegisterToModule(
+					WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
+					WealthData[i]->AutoActorData[j].ObjectName,
+					WealthData[i]->AutoActorData[j].ClassName
+				);
+			}
 		}
-		//ç”ŸæˆWidgetèµ„æº
+		//Éú³ÉWidget¶ÔÏó
 		for (int j = 0; j < WealthData[i]->AutoWidgetData.Num(); ++j)
 		{
-			//æ ¹æ®è·å–åˆ°çš„UClassç”ŸæˆæŒ‡å®šçš„DDèµ„æº
-			UDDUserWidget* NewWidget = CreateWidget<UDDUserWidget>(GetDDWorld(), WealthData[i]->AutoWidgetData[j].WealthClass);
-			//é¿å…å›æ”¶
+			UUserWidget* NewWidget = CreateWidget<UUserWidget>(GetDDWorld(), WealthData[i]->AutoWidgetData[j].WealthClass);
+			//±ÜÃâ»ØÊÕ
 			GCWidgetGroup.Push(NewWidget);
-			NewWidget->RegisterToModule(
-				WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
-				WealthData[i]->AutoWidgetData[j].ObjectName,
-				WealthData[i]->AutoWidgetData[j].ClassName
-			);
+			IDDOO* InstPtr = Cast<IDDOO>(NewWidget);
+			if (InstPtr)
+			{
+				InstPtr->RegisterToModule(
+					WealthData[i]->ModuleName.IsNone() ? IModule->GetFName() : WealthData[i]->ModuleName,
+					WealthData[i]->AutoWidgetData[j].ObjectName,
+					WealthData[i]->AutoWidgetData[j].ClassName
+				);
+			}
 		}
 
 #if WITH_EDITOR
-		//å¾ªç¯å°†æ•°æ®ç½®ç©º, åªåœ¨ç¼–è¾‘å™¨æ¨¡å¼ä¸‹ä½¿ç”¨
-		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
-			WealthData[i]->ClassWealthData[j].WealthClass = NULL;
+		//Ñ­»·ÉèÖÃWealthObjectºÍWealthClassÎª¿Õ, Ä¿µÄÔÚÓÚÃ¿´Î´Ó±à¼­Æ÷Æô¶¯ÓÎÏ·Ê±×ÊÔ´AssetµÄ×´Ì¬¶¼ÖØÖÃ
 		for (int j = 0; j < WealthData[i]->ObjectWealthData.Num(); ++j)
 			WealthData[i]->ObjectWealthData[j].WealthObject = NULL;
+		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
+			WealthData[i]->ClassWealthData[j].WealthClass = NULL;
 #endif
 	}
 }
 
-
+void UDDWealth::WealthTick(float DeltaSeconds)
+{
+	DealObjectSingleLoadStack();
+	DealObjectKindLoadStack();
+	DealClassSingleLoadStack();
+	DealClassKindLoadStack();
+	DealClassMultiLoadStack();
+}
 
 void UDDWealth::AssignData(TArray<UWealthData*>& InWealthData)
 {
 	WealthData = InWealthData;
 }
 
-
-FClassWealthEntry* UDDWealth::GetClassSinglePath(FName WealthName)
-{
-	//å¾ªç¯éå†å¯»æ‰¾èµ„æº
-	for (int i = 0; i < WealthData.Num(); ++i)
-	{
-		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
-		{
-			if (WealthData[i]->ClassWealthData[j].WealthName.IsEqual(WealthName))
-				return &(WealthData[i]->ClassWealthData[j]);
-		}
-	}
-	return NULL;
-}
-
-TArray<FClassWealthEntry*> UDDWealth::GetClassKindPath(FName WealthKind)
-{
-	TArray<FClassWealthEntry*> WealthGroup;
-	for (int i = 0; i < WealthData.Num(); ++i)
-	{
-		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
-		{
-			if (WealthData[i]->ClassWealthData[j].WealthKind.IsEqual(WealthKind))
-				WealthGroup.Add(&(WealthData[i]->ClassWealthData[j]));
-		}
-	}
-	return WealthGroup;
-}
-
-FObjectWealthEntry* UDDWealth::GetObjectSinglePath(FName WealthName)
-{
-	//å¾ªç¯éå†å¯»æ‰¾èµ„æº
-	for (int i = 0; i < WealthData.Num(); ++i)
-	{
-		for (int j = 0; j < WealthData[i]->ObjectWealthData.Num(); ++j)
-		{
-			if (WealthData[i]->ObjectWealthData[j].WealthName.IsEqual(WealthName))
-				return &(WealthData[i]->ObjectWealthData[j]);
-		}
-	}
-	return NULL;
-}
-
-TArray<FObjectWealthEntry*> UDDWealth::GetObjectKindPath(FName WealthKind)
-{
-	TArray<FObjectWealthEntry*> WealthGroup;
-	for (int i = 0; i < WealthData.Num(); ++i)
-	{
-		for (int j = 0; j < WealthData[i]->ObjectWealthData.Num(); ++j)
-		{
-			if (WealthData[i]->ObjectWealthData[j].WealthKind.IsEqual(WealthKind))
-				WealthGroup.Add(&(WealthData[i]->ObjectWealthData[j]));
-		}
-	}
-	return WealthGroup;
-}
-
-void UDDWealth::BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform)
-{
-	//è·å–å¯¹åº”çš„èµ„æºç»“æ„ä½“
-	FClassWealthEntry* WealthEntry = GetClassSinglePath(WealthName);
-	//å¦‚æœä¸ºç©º
-	if (!WealthEntry)
-	{
-		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
-	{
-		DDH::Debug() << ObjectName << " Get Not Valid : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºç±»å‹å’ŒDDObjectä¸åŒ¹é…
-	if (WealthEntry->WealthType != WealthType)
-	{
-		DDH::Debug() << ObjectName << " Get Error Type : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºå·²ç»åŠ è½½è¿›å†…å­˜, ç›´æ¥ç”Ÿæˆæ–°çš„èµ„æº
-	if (WealthEntry->WealthClass)
-	{
-		if (WealthType == EWealthType::Object)
-		{
-			UObject * InstObject = NewObject<UObject>(this, WealthEntry->WealthClass);
-			InstObject->AddToRoot();
-			//ç»™è¯·æ±‚å¯¹è±¡ä¼ é€’èµ„æº
-			BackObject(ModuleIndex, ObjectName, FunName, WealthName, InstObject);
-		}
-		else if (WealthType == EWealthType::Actor)
-		{
-			AActor * InstActor = GetDDWorld()->SpawnActor<AActor>(WealthEntry->WealthClass, SpawnTransform);
-			//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-			BackActor(ModuleIndex, ObjectName, FunName, WealthName, InstActor);
-		}
-		else if (WealthType == EWealthType::Widget)
-		{
-			UUserWidget * InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), WealthEntry->WealthClass);
-			//é¿å…å›æ”¶
-			GCWidgetGroup.Push(InstWidget);
-			//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-			BackWidget(ModuleIndex, ObjectName, FunName, WealthName, InstWidget);
-		}
-	}
-	else
-	{
-		//å¦‚æœèµ„æºæ²¡æœ‰åŠ è½½, å…ˆå»å¼‚æ­¥åŠ è½½
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
-		//åŠ åˆ°åŠ è½½æ ˆ
-		ClassSingleLoadStack.Add(new ClassSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName, SpawnTransform));
-	}
-}
-
-
-void UDDWealth::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
-{
-	//è·å–å¯¹åº”çš„èµ„æºç»“æ„ä½“
-	FClassWealthEntry* WealthEntry = GetClassSinglePath(WealthName);
-	//å¦‚æœä¸ºç©º
-	if (!WealthEntry)
-	{
-		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
-	{
-		DDH::Debug() << ObjectName << " Get Not Valid : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºç±»å‹å’ŒWealthTypeä¸åŒ¹é…
-	if (WealthEntry->WealthType != WealthType)
-	{
-		DDH::Debug() << ObjectName << " Get Error Type : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœSpawnTransformçš„æ•°é‡ä¸ä¸º1è€Œä¸”ä¸ä¸ºAmount
-	if (WealthType == EWealthType::Actor && SpawnTransforms.Num() != 1 && SpawnTransforms.Num() != Amount)
-	{
-		DDH::Debug() << ObjectName << " Get Error Spawn Count : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºå·²ç»åŠ è½½äº†
-	if (WealthEntry->WealthClass)
-	{
-		//ç›´æ¥æ³¨å†Œåˆ°åŠ è½½æ ˆ
-		ClassMultiLoadStack.Add(new ClassMultiLoadNode(WealthEntry, Amount, ObjectName, FunName, SpawnTransforms));
-	}
-	else
-	{
-		//å…ˆè¿›è¡Œå¼‚æ­¥åŠ è½½, å†æ³¨å†Œåˆ°åŠ è½½æ ˆ
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
-		ClassMultiLoadStack.Add(new ClassMultiLoadNode(WealthHandle, WealthEntry, Amount, ObjectName, FunName, SpawnTransforms));
-	}
-}
-
-void UDDWealth::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
-{
-	TArray<FClassWealthEntry*> WealthEntryGroup = GetClassKindPath(WealthKind);
-	//å¦‚æœæ•°é‡ä¸º0, è¾“å‡ºé”™è¯¯å¹¶ä¸”è¿”å›
-	if (WealthEntryGroup.Num() == 0)
-	{
-		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
-		return;
-	}
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-		if (!WealthEntryGroup[i]->WealthPtr.ToSoftObjectPath().IsValid())
-		{
-			DDH::Debug() << ObjectName << " Get Not Valid in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
-			return;
-		}
-		//å¦‚æœèµ„æºç±»å‹å’ŒWealthTypeä¸åŒ¹é…
-		if (WealthEntryGroup[i]->WealthType != WealthType)
-		{
-			DDH::Debug() << ObjectName << " Get Error Type in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
-			return;
-		}
-	}
-	//å¦‚æœSpawnTransformçš„æ•°é‡ä¸ä¸º1è€Œä¸”ä¸ä¸ºAmount
-	if (WealthType == EWealthType::Actor && SpawnTransforms.Num() != 1 && SpawnTransforms.Num() != WealthEntryGroup.Num())
-	{
-		DDH::Debug() << ObjectName << " Get Error Spawn Count : " << WealthKind << DDH::Endl();
-		return;
-	}
-	//è¿˜æ²¡æœ‰åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> UnLoadWealthEntry;
-	//å·²ç»åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> LoadWealthEntry;
-	//ç»™æ‹¿åˆ°çš„èµ„æºåˆ†ç±»
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		if (WealthEntryGroup[i]->WealthClass)
-		{
-			LoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-		else
-		{
-			UnLoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-	}
-	//å…ˆå£°æ˜ä¸€ä¸ªç©ºçš„åŠ è½½å¥æŸ„å…±äº«æŒ‡é’ˆ
-	TSharedPtr<FStreamableHandle> WealthHandle;
-	//å¦‚æœæœªåŠ è½½å¯¹è±¡ä¸ä¸º0, è¿›è¡Œå¼‚æ­¥åŠ è½½
-	if (UnLoadWealthEntry.Num() > 0)
-	{
-		//å…ˆè·å–è·¯å¾„èµ„æº
-		TArray<FSoftObjectPath> WealthPaths;
-		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
-			WealthPaths.Add(UnLoadWealthEntry[i]->WealthPtr.ToSoftObjectPath());
-		//ç»™å¼‚æ­¥åŠ è½½å¥æŸ„èµ‹å€¼
-		WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
-	}
-	//å°†åŠ è½½æ•°æ®æ¨å…¥WealthKindåŠ è½½æ ˆ
-	ClassKindLoadStack.Add(new ClassKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName, SpawnTransforms));
-}
-
-void UDDWealth::LoadClassWealth(FName WealthName, FName ObjectName, FName FunName)
-{
-	//è·å–å¯¹åº”çš„èµ„æºç»“æ„ä½“
-	FClassWealthEntry* WealthEntry = GetClassSinglePath(WealthName);
-	//å¦‚æœä¸ºç©º
-	if (!WealthEntry)
-	{
-		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
-	{
-		DDH::Debug() << ObjectName << " Get Not Valid : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºå·²ç»åŠ è½½è¿›å†…å­˜, ç›´æ¥ç”Ÿæˆæ–°çš„èµ„æº
-	if (WealthEntry->WealthClass)
-	{
-		BackClassWealth(ModuleIndex, ObjectName, FunName, WealthName, WealthEntry->WealthClass);
-	}
-	else
-	{
-		//å¦‚æœèµ„æºæ²¡æœ‰åŠ è½½, å…ˆå»å¼‚æ­¥åŠ è½½
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
-		//åŠ åˆ°åŠ è½½æ ˆ
-		ClassSingleLoadStack.Add(new ClassSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName));
-	}
-}
-
-void UDDWealth::LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName)
-{
-	TArray<FClassWealthEntry*> WealthEntryGroup = GetClassKindPath(WealthKind);
-
-	//å¦‚æœæ•°é‡ä¸º0, è¾“å‡ºé”™è¯¯å¹¶ä¸”è¿”å›
-	if (WealthEntryGroup.Num() == 0)
-	{
-		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
-		return;
-	}
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-		if (!WealthEntryGroup[i]->WealthPtr.ToSoftObjectPath().IsValid())
-		{
-			DDH::Debug() << ObjectName << " Get Not Valid in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
-			return;
-		}
-	}
-	//è¿˜æ²¡æœ‰åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> UnLoadWealthEntry;
-	//å·²ç»åŠ è½½çš„èµ„æº
-	TArray<FClassWealthEntry*> LoadWealthEntry;
-	//ç»™æ‹¿åˆ°çš„èµ„æºåˆ†ç±»
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		if (WealthEntryGroup[i]->WealthClass)
-		{
-			LoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-		else
-		{
-			UnLoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-	}
-	//å¦‚æœæœªåŠ è½½æ•°é‡ä¸º0, ç›´æ¥è¿”å›æ•°æ®
-	if (UnLoadWealthEntry.Num() == 0)
-	{
-		//ç›´æ¥è·å–æ‰€æœ‰çš„å¯¹è±¡è¿”å›ç»™è¯·æ±‚è€…
-		TArray<FName> NameGroup;
-		TArray<UClass*> WealthGroup;
-		for (int i = 0; i < LoadWealthEntry.Num(); ++i)
-		{
-			NameGroup.Add(LoadWealthEntry[i]->WealthName);
-			WealthGroup.Add(LoadWealthEntry[i]->WealthClass);
-		}
-		BackClassWealthKind(ModuleIndex, ObjectName, FunName, NameGroup, WealthGroup);
-	}
-	else
-	{
-		//å…ˆè·å–è·¯å¾„èµ„æº
-		TArray<FSoftObjectPath> WealthPaths;
-		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
-			WealthPaths.Add(UnLoadWealthEntry[i]->WealthPtr.ToSoftObjectPath());
-		//ç»™å¼‚æ­¥åŠ è½½å¥æŸ„èµ‹å€¼
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
-		//å°†åŠ è½½æ•°æ®æ¨å…¥WealthKindåŠ è½½æ ˆ
-		ClassKindLoadStack.Add(new ClassKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName));
-	}
-}
-
-void UDDWealth::LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName)
-{
-	//è·å–èµ„æºç»“æ„ä½“
-	FObjectWealthEntry* WealthEntry = GetObjectSinglePath(WealthName);
-	//å¦‚æœä¸ºç©º
-	if (!WealthEntry)
-	{
-		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-	if (!WealthEntry->WealthPath.IsValid())
-	{
-		DDH::Debug() << ObjectName << " Get Not Valid : " << WealthName << DDH::Endl();
-		return;
-	}
-	//å¦‚æœèµ„æºå·²ç»åŠ è½½
-	if (WealthEntry->WealthObject)
-	{
-		//ç›´æ¥è¿”å›ç»™è¯·æ±‚å¯¹è±¡
-		BackObjectWealth(ModuleIndex, ObjectName, FunName, WealthName, WealthEntry->WealthObject);
-	}
-	else
-	{
-		//å¦‚æœæ²¡æœ‰åŠ è½½å°±è¿›è¡Œå¼‚æ­¥åŠ è½½
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPath);
-		//æ·»åŠ åˆ°åŠ è½½åºåˆ—
-		ObjectSingleLoadStack.Add(new ObjectSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName));
-	}
-}
-
-void UDDWealth::LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName)
-{
-	TArray<FObjectWealthEntry*> WealthEntryGroup = GetObjectKindPath(WealthKind);
-	//å¦‚æœæ•°é‡ä¸º0, è¾“å‡ºé”™è¯¯å¹¶ä¸”è¿”å›
-	if (WealthEntryGroup.Num() == 0)
-	{
-		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
-		return;
-	}
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		//å¦‚æœèµ„æºä¸å¯ç”¨, è¾“å‡ºé”™è¯¯
-		if (!WealthEntryGroup[i]->WealthPath.IsValid())
-		{
-			DDH::Debug() << ObjectName << " Get Not Valid in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
-			return;
-		}
-	}
-	//è¿˜æ²¡æœ‰åŠ è½½çš„èµ„æº
-	TArray<FObjectWealthEntry*> UnLoadWealthEntry;
-	//å·²ç»åŠ è½½çš„èµ„æº
-	TArray<FObjectWealthEntry*> LoadWealthEntry;
-	//ç»™æ‹¿åˆ°çš„èµ„æºåˆ†ç±»
-	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
-	{
-		if (WealthEntryGroup[i]->WealthObject)
-		{
-			LoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-		else
-		{
-			UnLoadWealthEntry.Add(WealthEntryGroup[i]);
-		}
-	}
-	//å¦‚æœæœªåŠ è½½èµ„æºä¸º0
-	if (UnLoadWealthEntry.Num() == 0)
-	{
-		//ç›´æ¥è·å–æ‰€æœ‰çš„å¯¹è±¡è¿”å›ç»™è¯·æ±‚è€…
-		TArray<FName> NameGroup;
-		TArray<UObject*> WealthGroup;
-		for (int i = 0; i < LoadWealthEntry.Num(); ++i)
-		{
-			NameGroup.Add(LoadWealthEntry[i]->WealthName);
-			WealthGroup.Add(LoadWealthEntry[i]->WealthObject);
-		}
-		BackObjectWealthKind(ModuleIndex, ObjectName, FunName, NameGroup, WealthGroup);
-	}
-	else
-	{
-		//å…ˆè·å–è·¯å¾„èµ„æº
-		TArray<FSoftObjectPath> WealthPaths;
-		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
-			WealthPaths.Add(UnLoadWealthEntry[i]->WealthPath);
-		//ç»™å¼‚æ­¥åŠ è½½å¥æŸ„èµ‹å€¼
-		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
-		//æ³¨å†ŒåŠ è½½èŠ‚ç‚¹åˆ°åŠ è½½æ ˆ
-		ObjectKindLoadStack.Add(new ObjectKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName));
-	}
-}
-
 FWealthURL* UDDWealth::GainWealthURL(FName WealthName)
 {
 	for (int i = 0; i < WealthData.Num(); ++i)
 		for (int j = 0; j < WealthData[i]->WealthURL.Num(); ++j)
-			if (WealthData[i]->WealthURL[j].WealthName.IsEqual(WealthName) && WealthData[i]->WealthURL[j].WealthPath.IsValid())
+			if (WealthData[i]->WealthURL[j].WealthName.IsEqual(WealthName))
 				return &WealthData[i]->WealthURL[j];
 	return NULL;
 }
@@ -646,330 +258,675 @@ void UDDWealth::GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL)
 {
 	for (int i = 0; i < WealthData.Num(); ++i)
 		for (int j = 0; j < WealthData[i]->WealthURL.Num(); ++j)
-			if (WealthData[i]->WealthURL[j].WealthKind.IsEqual(WealthKind) && WealthData[i]->WealthURL[j].WealthPath.IsValid())
-				OutURL.Add(&WealthData[i]->WealthURL[j]);
+			if (WealthData[i]->WealthURL[j].WealthKind.IsEqual(WealthKind))
+				OutURL.Push(&WealthData[i]->WealthURL[j]);
 }
 
-void UDDWealth::WealthTick(float DeltaSeconds)
+void UDDWealth::LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName)
 {
-	//å¤„ç†ClassSingleLoadStack
-	DealClassSingleLoadStack();
-	//å¤„ç†ClassMultiLoadStack
-	DealClassMultiLoadStack();
-	//å¤„ç†ClassKindLoadStack
-	DealClassKindLoadStack();
-	//å¤„ç†å•ç‹¬åŠ è½½Objectèµ„æºé˜Ÿåˆ—
-	DealObjectSingleLoadStack();
-	//å¤„ç†Objectèµ„æºç§ç±»åŠ è½½é˜Ÿåˆ—
-	DealObjectKindLoadStack();
-}
-
-void UDDWealth::DealClassSingleLoadStack()
-{
-	//å®šä¹‰åŠ è½½å®Œæˆçš„åºåˆ—
-	TArray<ClassSingleLoadNode*> CompleteStack;
-	for (int i = 0; i < ClassSingleLoadStack.Num(); ++i)
+	//»ñÈ¡×ÊÔ´½á¹¹Ìå
+	FObjectWealthEntry* WealthEntry = GetObjectSingleEntry(WealthName);
+	//Èç¹ûÎª¿Õ
+	if (!WealthEntry)
 	{
-		//éå†åˆ¤æ–­æ˜¯å¦å·²ç»åŠ è½½å®Œæ¯•
-		if (ClassSingleLoadStack[i]->WealthHandle->HasLoadCompleted())
-		{
-			//è®¾ç½®å¯¹åº”èµ„æºå·²ç»åŠ è½½å®Œæˆ
-			ClassSingleLoadStack[i]->WealthEntry->WealthClass = Cast<UClass>(ClassSingleLoadStack[i]->WealthHandle->GetLoadedAsset());
-			//å¦‚æœæ˜¯åŠ è½½Class
-			if (ClassSingleLoadStack[i]->LoadClass)
-			{
-				//ç›´æ¥è¿”å›Classç»™è¯·æ±‚è€…
-				BackClassWealth(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, ClassSingleLoadStack[i]->WealthEntry->WealthClass);
-			}
-			else
-			{
-				//æ ¹æ®èµ„æºç±»å‹ç”Ÿæˆå¯¹åº”èµ„æº
-				if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Object)
-				{
-					UObject * InstObject = NewObject<UObject>(this, ClassSingleLoadStack[i]->WealthEntry->WealthClass);
-					InstObject->AddToRoot();
-					//ç»™è¯·æ±‚å¯¹è±¡ä¼ é€’èµ„æº
-					BackObject(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstObject);
-				}
-				else if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Actor)
-				{
-					AActor * InstActor = GetDDWorld()->SpawnActor<AActor>(ClassSingleLoadStack[i]->WealthEntry->WealthClass, ClassSingleLoadStack[i]->SpawnTransform);
-					//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-					BackActor(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstActor);
-				}
-				else if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Widget)
-				{
-					UUserWidget * InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), ClassSingleLoadStack[i]->WealthEntry->WealthClass);
-					//é¿å…å›æ”¶
-					GCWidgetGroup.Push(InstWidget);
-					//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-					BackWidget(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstWidget);
-				}
-			}
-			//æ·»åŠ åˆ°å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-			CompleteStack.Add(ClassSingleLoadStack[i]);
-		}
+		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
+		return;
 	}
-	//éå†å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-	for (int i = 0; i < CompleteStack.Num(); ++i)
+	//Èç¹û×ÊÔ´²»¿ÉÓÃ
+	if (!WealthEntry->WealthPath.IsValid())
 	{
-		//å°†åŠ è½½å®Œæˆçš„åºåˆ—ä»æ ˆä¸­ç§»é™¤
-		ClassSingleLoadStack.Remove(CompleteStack[i]);
-		//é‡Šæ”¾èµ„æº
-		delete CompleteStack[i];
+		DDH::Debug() << ObjectName << " Get UnValid Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´ÒÑ¾­¼ÓÔØ
+	if (WealthEntry->WealthObject)
+	{
+		//Ö±½Ó·µ»ØÒÑ¾­´æÔÚµÄ×ÊÔ´¸ø¶ÔÏó
+		BackObjectWealth(ModuleIndex, ObjectName, FunName, WealthName, WealthEntry->WealthObject);
+	}
+	else
+	{
+		//½øĞĞÒì²½¼ÓÔØ
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPath);
+		//Ìí¼ÓĞÂ½Úµãµ½¼ÓÔØĞòÁĞ
+		ObjectSingleLoadStack.Push(new ObjectSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName));
 	}
 }
 
-void UDDWealth::DealClassMultiLoadStack()
+
+void UDDWealth::LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName)
 {
-	//å®šä¹‰åŠ è½½å®Œæˆçš„åºåˆ—
-	TArray<ClassMultiLoadNode*> CompleteStack;
-	for (int i = 0; i < ClassMultiLoadStack.Num(); ++i)
+	TArray<FObjectWealthEntry*> WealthEntryGroup = GetObjectKindEntry(WealthKind);
+	//Èç¹ûÊıÁ¿Îª0
+	if (WealthEntryGroup.Num() == 0)
 	{
-		//å¦‚æœå¯¹åº”èµ„æºæ²¡æœ‰åŠ è½½, è¯´æ˜è¿™ä¸ªNodeçš„WealthHandleæœ‰æ•ˆ
-		if (!ClassMultiLoadStack[i]->WealthEntry->WealthClass)
+		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
+		return;
+	}
+	//ÅĞ¶Ï×ÊÔ´¿ÉÓÃĞÔ
+	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
+	{
+		if (!WealthEntryGroup[i]->WealthPath.IsValid())
 		{
-			//é€šè¿‡åˆ¤æ–­WealthHandleæœ‰æ²¡æœ‰åŠ è½½å®Œæˆè®¾ç½®WealthClasså€¼
-			if (ClassMultiLoadStack[i]->WealthHandle->HasLoadCompleted())
-				ClassMultiLoadStack[i]->WealthEntry->WealthClass = Cast<UClass>(ClassMultiLoadStack[i]->WealthHandle->GetLoadedAsset());
-		}
-		//å†æ¬¡åˆ¤æ–­WealthClassæ¥å’Œå·²ç»ç”Ÿæˆçš„æ•°é‡æ¥å†³å®šæ˜¯å¦æ·»åŠ åˆ°å®Œæˆåºåˆ—
-		if (ClassMultiLoadStack[i]->WealthEntry->WealthClass)
-		{
-			//åŒºåˆ†ç±»å‹
-			if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Object)
-			{
-				UObject * InstObject = NewObject<UObject>(this, CompleteStack[i]->WealthEntry->WealthClass);
-				InstObject->AddToRoot();
-				ClassMultiLoadStack[i]->ObjectGroup.Add(InstObject);
-				//å¦‚æœæ•°é‡å·²ç»è¶³å¤Ÿ
-				if (ClassMultiLoadStack[i]->ObjectGroup.Num() >= ClassMultiLoadStack[i]->Amount)
-				{
-					//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-					BackObjects(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->ObjectGroup);
-					//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-					CompleteStack.Add(ClassMultiLoadStack[i]);
-				}
-			}
-			else if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Actor)
-			{
-				//è·å–ç”Ÿæˆä½ç½®
-				FTransform SpawnTransform = ClassMultiLoadStack[i]->SpawnTransforms.Num() == 1 ? ClassMultiLoadStack[i]->SpawnTransforms[0] : ClassMultiLoadStack[i]->SpawnTransforms[ClassMultiLoadStack[i]->ActorGroup.Num()];
-				//ç”Ÿæˆå¯¹è±¡
-				AActor * InstActor = GetDDWorld()->SpawnActor<AActor>(ClassMultiLoadStack[i]->WealthEntry->WealthClass, SpawnTransform);
-				ClassMultiLoadStack[i]->ActorGroup.Add(InstActor);
-				//å¦‚æœæ•°é‡å·²ç»è¶³å¤Ÿ
-				if (ClassMultiLoadStack[i]->ActorGroup.Num() >= ClassMultiLoadStack[i]->Amount)
-				{
-					//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-					BackActors(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->ActorGroup);
-					//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-					CompleteStack.Add(ClassMultiLoadStack[i]);
-				}
-			}
-			else if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Widget)
-			{
-				UUserWidget * InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), ClassMultiLoadStack[i]->WealthEntry->WealthClass);
-				//é¿å…å›æ”¶
-				GCWidgetGroup.Push(InstWidget);
-				ClassMultiLoadStack[i]->WidgetGroup.Add(InstWidget);
-				//å¦‚æœæ•°é‡å·²ç»è¶³å¤Ÿ
-				if (ClassMultiLoadStack[i]->WidgetGroup.Num() >= ClassMultiLoadStack[i]->Amount)
-				{
-					//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-					BackWidgets(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->WidgetGroup);
-					//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-					CompleteStack.Add(ClassMultiLoadStack[i]);
-				}
-			}
+			DDH::Debug() << ObjectName << " Get Not Valid in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
+			return;
 		}
 	}
-	//éå†å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-	for (int i = 0; i < CompleteStack.Num(); ++i)
+	//»¹Ã»ÓĞ¼ÓÔØµÄ×ÊÔ´
+	TArray<FObjectWealthEntry*> UnLoadWealthEntry;
+	//ÒÑ¾­¼ÓÔØµÄ×ÊÔ´
+	TArray<FObjectWealthEntry*> LoadWealthEntry;
+	//×ÊÔ´¼ÓÔØÓë·ñ¹éÀà
+	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
 	{
-		//å°†åŠ è½½å®Œæˆçš„åºåˆ—ä»æ ˆä¸­ç§»é™¤
-		ClassMultiLoadStack.Remove(CompleteStack[i]);
-		//é‡Šæ”¾èµ„æº
-		delete CompleteStack[i];
+		if (WealthEntryGroup[i]->WealthObject)
+			LoadWealthEntry.Push(WealthEntryGroup[i]);
+		else
+			UnLoadWealthEntry.Push(WealthEntryGroup[i]);
+	}
+	//Èç¹ûÎ´¼ÓÔØµÄ×ÊÔ´Îª0
+	if (UnLoadWealthEntry.Num() == 0)
+	{
+		//Ö±½Ó»ñÈ¡ËùÓĞ×ÊÔ´¸øÇëÇó¶ÔÏó
+		TArray<FName> NameGroup;
+		TArray<UObject*> WealthGroup;
+		for (int i = 0; i < LoadWealthEntry.Num(); ++i)
+		{
+			NameGroup.Push(LoadWealthEntry[i]->WealthName);
+			WealthGroup.Push(LoadWealthEntry[i]->WealthObject);
+		}
+		BackObjectWealthKind(ModuleIndex, ObjectName, FunName, NameGroup, WealthGroup);
+	}
+	else
+	{
+		//»ñÈ¡×ÊÔ´Â·¾¶
+		TArray<FSoftObjectPath> WealthPaths;
+		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
+			WealthPaths.Push(UnLoadWealthEntry[i]->WealthPath);
+		//½øĞĞÒì²½¼ÓÔØ»ñÈ¡¾ä±ú
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
+		//Éú³É¼ÓÔØ½Úµã
+		ObjectKindLoadStack.Push(new ObjectKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName));
 	}
 }
 
-void UDDWealth::DealClassKindLoadStack()
+void UDDWealth::LoadClassWealth(FName WealthName, FName ObjectName, FName FunName)
 {
-	//å®šä¹‰åŠ è½½å®Œæˆçš„åºåˆ—
-	TArray<ClassKindLoadNode*> CompleteStack;
-	for (int i = 0; i < ClassKindLoadStack.Num(); ++i)
+	//»ñÈ¡×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* WealthEntry = GetClassSingleEntry(WealthName);
+	//Èç¹ûÎª¿Õ
+	if (!WealthEntry)
 	{
-		//å¦‚æœWealthHandleæœ‰æ•ˆå¹¶ä¸”åŠ è½½å®Œæˆè€Œä¸”æœªåŠ è½½åºåˆ—æœ‰æ•°æ®, è¯´æ˜æœ‰å¼‚æ­¥åŠ è½½å¹¶ä¸”æ˜¯ç¬¬ä¸€æ¬¡åŠ è½½å®Œæˆ
-		if (ClassKindLoadStack[i]->WealthHandle.IsValid() && ClassKindLoadStack[i]->WealthHandle->HasLoadCompleted() && ClassKindLoadStack[i]->UnLoadWealthEntry.Num() > 0)
-		{
-			//å¦‚æœå·²ç»åŠ è½½å®Œæˆ, æŠŠæœªåŠ è½½åºåˆ—è®¾ç½®æˆå·²ç»åŠ è½½
-			for (int j = 0; j < ClassKindLoadStack[i]->UnLoadWealthEntry.Num(); ++j)
-			{
-				ClassKindLoadStack[i]->UnLoadWealthEntry[j]->WealthClass = Cast<UClass>(ClassKindLoadStack[i]->UnLoadWealthEntry[j]->WealthPtr.ToSoftObjectPath().ResolveObject());
-			}
-			//å°†æœªåŠ è½½åºåˆ—è½¬ç§»åˆ°å·²åŠ è½½åºåˆ—
-			ClassKindLoadStack[i]->LoadWealthEntry.Append(ClassKindLoadStack[i]->UnLoadWealthEntry);
-			//æ¸…ç©ºæœªåŠ è½½åºåˆ—
-			ClassKindLoadStack[i]->UnLoadWealthEntry.Empty();
-		}
+		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´²»¿ÉÓÃ
+	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
+	{
+		DDH::Debug() << ObjectName << " Get UnValid Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´ÒÑ¾­¼ÓÔØ
+	if (WealthEntry->WealthClass)
+	{
+		//Ö±½Ó°Ñ×ÊÔ´·µ»Ø¸øÉêÇë¶ÔÏó
+		BackClassWealth(ModuleIndex, ObjectName, FunName, WealthName, WealthEntry->WealthClass);
+	}
+	else
+	{
+		//½øĞĞÒì²½¼ÓÔØ
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
+		//Ìí¼Ó½Úµã
+		ClassSingleLoadStack.Push(new ClassSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName));
+	}
+}
 
-		//å¦‚æœæœªåŠ è½½åºåˆ—å·²ç»ä¸º0, è¯´æ˜å·²ç»åœ¨ç”Ÿæˆèµ„æºé˜¶æ®µ
-		if (ClassKindLoadStack[i]->UnLoadWealthEntry.Num() == 0)
+void UDDWealth::LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName)
+{
+	TArray<FClassWealthEntry*> WealthEntryGroup = GetClassKindEntry(WealthKind);
+	//Èç¹ûÊıÁ¿Îª0
+	if (WealthEntryGroup.Num() == 0)
+	{
+		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
+		return;
+	}
+	//ÅĞ¶Ï×ÊÔ´¿ÉÓÃĞÔ
+	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
+	{
+		if (!WealthEntryGroup[i]->WealthPtr.ToSoftObjectPath().IsValid())
 		{
-			//å¦‚æœåªæ˜¯åŠ è½½Class
-			if (ClassKindLoadStack[i]->LoadClass)
-			{
-				//ç›´æ¥ä¼ é€æ•°æ®
-				TArray<FName> NameGroup;
-				TArray<UClass*> WealthGroup;
-				//éå†å·²ç»åŠ è½½çš„åºåˆ—å¡«å……æ•°ç»„
-				for (int j = 0; j < ClassKindLoadStack[i]->LoadWealthEntry.Num(); ++j)
-				{
-					NameGroup.Add(ClassKindLoadStack[i]->LoadWealthEntry[j]->WealthName);
-					WealthGroup.Add(ClassKindLoadStack[i]->LoadWealthEntry[j]->WealthClass);
-				}
-				//è¿”å›æ•°æ®ç»™è¯·æ±‚å¯¹è±¡
-				BackClassWealthKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, NameGroup, WealthGroup);
-				//æ·»åŠ åˆ°å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-				CompleteStack.Add(ClassKindLoadStack[i]);
-			}
-			else //å¦‚æœè¦ç”Ÿæˆèµ„æº
-			{
-				//ä»å·²åŠ è½½åºåˆ—æå–å‡ºç¬¬ä¸€ä¸ª
-				FClassWealthEntry* WealthEntry = ClassKindLoadStack[i]->LoadWealthEntry[0];
-				//å°†ç¬¬ä¸€ä¸ªä»å·²åŠ è½½åºåˆ—ä¸­ç§»é™¤
-				ClassKindLoadStack[i]->LoadWealthEntry.RemoveAt(0);
-				//æ ¹æ®æå–å‡ºçš„èµ„æºç±»å‹ç”Ÿæˆå¯¹åº”èµ„æºå¹¶ä¸”æ·»åŠ åˆ°ç”Ÿäº§åºåˆ—
-				if (WealthEntry->WealthType == EWealthType::Object)
-				{
-					UObject * InstObject = NewObject<UObject>(this, WealthEntry->WealthClass);
-					InstObject->AddToRoot();
-					//æ·»åŠ åˆ°åºåˆ—
-					ClassKindLoadStack[i]->NameGroup.Add(WealthEntry->WealthName);
-					ClassKindLoadStack[i]->ObjectGroup.Add(InstObject);
-					//å¦‚æœå·²åŠ è½½åºåˆ—å®¹é‡å·²ç»ä¸º0, è¯´æ˜å·²ç»åŠ è½½å®Œæ¯•
-					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
-					{
-						//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-						BackObjectKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->ObjectGroup);
-						//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-						CompleteStack.Add(ClassKindLoadStack[i]);
-					}
-				}
-				else if (WealthEntry->WealthType == EWealthType::Actor)
-				{
-					//è·å–ç”Ÿæˆä½ç½®
-					FTransform SpawnTransform = ClassKindLoadStack[i]->SpawnTransforms.Num() == 1 ? ClassKindLoadStack[i]->SpawnTransforms[0] : ClassKindLoadStack[i]->SpawnTransforms[ClassKindLoadStack[i]->ActorGroup.Num()];
-					//ç”Ÿæˆå¯¹è±¡
-					AActor * InstActor = GetDDWorld()->SpawnActor<AActor>(WealthEntry->WealthClass, SpawnTransform);
-					//æ·»åŠ åˆ°åºåˆ—
-					ClassKindLoadStack[i]->NameGroup.Add(WealthEntry->WealthName);
-					ClassKindLoadStack[i]->ActorGroup.Add(InstActor);
-					//å¦‚æœå·²åŠ è½½åºåˆ—å®¹é‡å·²ç»ä¸º0, è¯´æ˜å·²ç»åŠ è½½å®Œæ¯•
-					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
-					{
-						//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-						BackActorKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->ActorGroup);
-						//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-						CompleteStack.Add(ClassKindLoadStack[i]);
-					}
-				}
-				else if (WealthEntry->WealthType == EWealthType::Widget)
-				{
-					UUserWidget * InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), WealthEntry->WealthClass);
-					//é¿å…å›æ”¶
-					GCWidgetGroup.Push(InstWidget);
-					//æ·»åŠ åˆ°åºåˆ—
-					ClassKindLoadStack[i]->NameGroup.Add(WealthEntry->WealthName);
-					ClassKindLoadStack[i]->WidgetGroup.Add(InstWidget);
-					//å¦‚æœå·²åŠ è½½åºåˆ—å®¹é‡å·²ç»ä¸º0, è¯´æ˜å·²ç»åŠ è½½å®Œæ¯•
-					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
-					{
-						//ç»™è¯·æ±‚çš„å¯¹è±¡ä¼ é€’èµ„æº
-						BackWidgetKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->WidgetGroup);
-						//æ·»åŠ åˆ°å®Œæˆåºåˆ—
-						CompleteStack.Add(ClassKindLoadStack[i]);
-					}
-				}
-			}
+			DDH::Debug() << ObjectName << " Get Not Valid in Kind : " << WealthKind << " For Name : " << WealthEntryGroup[i]->WealthName << DDH::Endl();
+			return;
 		}
 	}
-	//éå†å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-	for (int i = 0; i < CompleteStack.Num(); ++i)
+	//Î´¼ÓÔØ×ÊÔ´ĞòÁĞ
+	TArray<FClassWealthEntry*> UnLoadWealthEntry;
+	//ÒÑ¼ÓÔØ×ÊÔ´ĞòÁĞ
+	TArray<FClassWealthEntry*> LoadWealthEntry;
+	//·ÖÀà±£´æ
+	for (int i = 0; i < WealthEntryGroup.Num(); ++i)
 	{
-		//å°†åŠ è½½å®Œæˆçš„åºåˆ—ä»æ ˆä¸­ç§»é™¤
-		ClassKindLoadStack.Remove(CompleteStack[i]);
-		//é‡Šæ”¾èµ„æº
-		delete CompleteStack[i];
+		if (WealthEntryGroup[i]->WealthClass)
+			LoadWealthEntry.Push(WealthEntryGroup[i]);
+		else
+			UnLoadWealthEntry.Push(WealthEntryGroup[i]);
 	}
+	//ÅĞ¶ÏËùÓĞ×ÊÔ´ÊÇ·ñ¶¼ÒÑ¾­¼ÓÔØ
+	if (UnLoadWealthEntry.Num() == 0)
+	{
+		//Ìî³ä²ÎÊı
+		TArray<FName> NameGroup;
+		TArray<UClass*> WealthGroup;
+		for (int i = 0; i < LoadWealthEntry.Num(); ++i)
+		{
+			NameGroup.Push(LoadWealthEntry[i]->WealthName);
+			WealthGroup.Push(LoadWealthEntry[i]->WealthClass);
+		}
+		//·µ»Ø×ÊÔ´¸øÇëÇó¶ÔÏó
+		BackClassWealthKind(ModuleIndex, ObjectName, FunName, NameGroup, WealthGroup);
+	}
+	else
+	{
+		//»ñÈ¡Î´¼ÓÔØ×ÊÔ´Â·¾¶Êı×é
+		TArray<FSoftObjectPath> WealthPaths;
+		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
+			WealthPaths.Push(UnLoadWealthEntry[i]->WealthPtr.ToSoftObjectPath());
+		//½øĞĞÒì²½¼ÓÔØ»ñÈ¡¾ä±ú
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
+		//Ìí¼ÓĞÂµÄ¼ÓÔØ½Úµã
+		ClassKindLoadStack.Push(new ClassKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName));
+	}
+}
+
+void UDDWealth::BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform)
+{
+	//»ñÈ¡¶ÔÓ¦µÄ×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* WealthEntry = GetClassSingleEntry(WealthName);
+	//Èç¹ûÎª¿Õ
+	if (!WealthEntry)
+	{
+		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´²»¿ÉÓÃ
+	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
+	{
+		DDH::Debug() << ObjectName << " Get UnValid Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//×ÊÔ´ÀàĞÍÊÇ·ñÆ¥Åä
+	if (WealthEntry->WealthType != WealthType)
+	{
+		DDH::Debug() << ObjectName << " Get Error Type : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´ÒÑ¾­¼ÓÔØ
+	if (WealthEntry->WealthClass)
+	{
+		//Éú³É²¢ÇÒ´«µİ¶ÔÏóµ½ÇëÇóÕß
+		if (WealthType == EWealthType::Object)
+		{
+			UObject* InstObject = NewObject<UObject>(this, WealthEntry->WealthClass);
+			InstObject->AddToRoot();
+			BackObjectSingle(ModuleIndex, ObjectName, FunName, WealthName, InstObject);
+		}
+		else if (WealthType == EWealthType::Actor)
+		{
+			AActor* InstActor = GetDDWorld()->SpawnActor<AActor>(WealthEntry->WealthClass, SpawnTransform);
+			BackActorSingle(ModuleIndex, ObjectName, FunName, WealthName, InstActor);
+		}
+		else if (WealthType == EWealthType::Widget)
+		{
+			UUserWidget* InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), WealthEntry->WealthClass);
+			//±ÜÃâ»ØÊÕ
+			GCWidgetGroup.Push(InstWidget);
+			BackWidgetSingle(ModuleIndex, ObjectName, FunName, WealthName, InstWidget);
+		}
+	}
+	else
+	{
+		//Òì²½¼ÓÔØ, »ñÈ¡¼ÓÔØ¾ä±ú
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
+		//´´½¨ĞÂ¼ÓÔØ½Úµã
+		ClassSingleLoadStack.Push(new ClassSingleLoadNode(WealthHandle, WealthEntry, ObjectName, FunName, SpawnTransform));
+	}
+}
+
+void UDDWealth::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
+{
+	TArray<FClassWealthEntry*> WealthEntrytGroup = GetClassKindEntry(WealthKind);
+	//ÅĞ¶ÏÎª0
+	if (WealthEntrytGroup.Num() == 0)
+	{
+		DDH::Debug() << ObjectName << " Get Null WealthKind : " << WealthKind << DDH::Endl();
+		return;
+	}
+	for (int i = 0; i < WealthEntrytGroup.Num(); ++i)
+	{
+		//×ÊÔ´¿ÉÓÃĞÔ
+		if (!WealthEntrytGroup[i]->WealthPtr.ToSoftObjectPath().IsValid())
+		{
+			DDH::Debug() << ObjectName << " Get Not Vaild In Kind : " << WealthKind << " For Name : " << WealthEntrytGroup[i]->WealthName << DDH::Endl();
+			return;
+		}
+		//×ÊÔ´ÀàĞÍÆ¥Åä
+		if (WealthEntrytGroup[i]->WealthType != WealthType)
+		{
+			DDH::Debug() << ObjectName << " Get Error Type In Kind : " << WealthKind << " For Name : " << WealthEntrytGroup[i]->WealthName << DDH::Endl();
+			return;
+		}
+	}
+	//ÅĞ¶ÏTransformÊı×éÊÇ·ñÎª1»òÕßÊÇ·ñÎªWealthEntrytGroupµÄÊıÁ¿
+	if (WealthType == EWealthType::Actor && SpawnTransforms.Num() != 1 && SpawnTransforms.Num() != WealthEntrytGroup.Num())
+	{
+		DDH::Debug() << ObjectName << " Send Error Spawn Count : " << WealthKind << DDH::Endl();
+		return;
+ 	}
+	//Î´¼ÓÔØµÄ×ÊÔ´Á´½Ó
+	TArray<FClassWealthEntry*> UnLoadWealthEntry;
+	//ÒÑ¼ÓÔØ×ÊÔ´Á´½Ó
+	TArray<FClassWealthEntry*> LoadWealthEntry;
+	//×ÊÔ´·ÖÀà
+	for (int i = 0; i < WealthEntrytGroup.Num(); ++i)
+	{
+		if (WealthEntrytGroup[i]->WealthClass)
+			LoadWealthEntry.Push(WealthEntrytGroup[i]);
+		else
+			UnLoadWealthEntry.Push(WealthEntrytGroup[i]);
+	}
+	//ÉùÃ÷Ò»¸ö¼ÓÔØ¾ä±ú
+	TSharedPtr<FStreamableHandle> WealthHandle;
+	//Èç¹ûÓĞÎ´¼ÓÔØµÄ×ÊÔ´
+	if (UnLoadWealthEntry.Num() > 0)
+	{
+		//»ñÈ¡×ÊÔ´Â·¾¶
+		TArray<FSoftObjectPath> WealthPaths;
+		for (int i = 0; i < UnLoadWealthEntry.Num(); ++i)
+			WealthPaths.Push(UnLoadWealthEntry[i]->WealthPtr.ToSoftObjectPath());
+		//»ñÈ¡¼ÓÔØ¾ä±ú
+		WealthHandle = WealthLoader.RequestAsyncLoad(WealthPaths);
+	}
+	//´´½¨Ö¡´¦ÀíµÄ½Úµã
+	ClassKindLoadStack.Push(new ClassKindLoadNode(WealthHandle, UnLoadWealthEntry, LoadWealthEntry, ObjectName, FunName, SpawnTransforms));
+}
+
+void UDDWealth::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms)
+{
+	//»ñÈ¡¶ÔÓ¦µÄ×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* WealthEntry = GetClassSingleEntry(WealthName);
+	//Èç¹ûÎª¿Õ
+	if (!WealthEntry)
+	{
+		DDH::Debug() << ObjectName << " Get Null Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹û×ÊÔ´²»¿ÉÓÃ
+	if (!WealthEntry->WealthPtr.ToSoftObjectPath().IsValid())
+	{
+		DDH::Debug() << ObjectName << " Get UnValid Wealth : " << WealthName << DDH::Endl();
+		return;
+	}
+	//×ÊÔ´ÀàĞÍÊÇ·ñÆ¥Åä
+	if (WealthEntry->WealthType != WealthType)
+	{
+		DDH::Debug() << ObjectName << " Get Error Type : " << WealthName << DDH::Endl();
+		return;
+	}
+	//ÑéÖ¤TransformÊı×éµÄÊıÁ¿ÊÇ·ñÎª1»òÕßÎªAmount, »òÔòAmount = 0
+	if ((WealthType == EWealthType::Actor && SpawnTransforms.Num() != 1 && SpawnTransforms.Num() != Amount) || Amount == 0)
+	{
+		DDH::Debug() << ObjectName << " Send Error Spawn Count : " << WealthName << DDH::Endl();
+		return;
+	}
+	//Èç¹ûÒÑ¾­¼ÓÔØ×ÊÔ´
+	if (WealthEntry->WealthClass)
+		ClassMultiLoadStack.Push(new ClassMultiLoadNode(WealthEntry, Amount, ObjectName, FunName, SpawnTransforms));
+	else
+	{
+		//Òì²½¼ÓÔØ
+		TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader.RequestAsyncLoad(WealthEntry->WealthPtr.ToSoftObjectPath());
+		//Ìí¼ÓĞÂ½Úµã
+		ClassMultiLoadStack.Push(new ClassMultiLoadNode(WealthHandle, WealthEntry, Amount, ObjectName, FunName, SpawnTransforms));
+	}
+}
+
+FObjectWealthEntry* UDDWealth::GetObjectSingleEntry(FName WealthName)
+{
+	for (int i = 0; i < WealthData.Num(); ++i)
+		for (int j = 0; j < WealthData[i]->ObjectWealthData.Num(); ++j)
+			if (WealthData[i]->ObjectWealthData[j].WealthName.IsEqual(WealthName))
+				return &(WealthData[i]->ObjectWealthData[j]);
+	return NULL;
+}
+
+TArray<FObjectWealthEntry*> UDDWealth::GetObjectKindEntry(FName WealthKind)
+{
+	TArray<FObjectWealthEntry*> WealthGroup;
+	for (int i = 0; i < WealthData.Num(); ++i)
+		for (int j = 0; j < WealthData[i]->ObjectWealthData.Num(); ++j)
+			if (WealthData[i]->ObjectWealthData[j].WealthKind.IsEqual(WealthKind))
+				WealthGroup.Push(&(WealthData[i]->ObjectWealthData[j]));
+	return WealthGroup;
+}
+
+FClassWealthEntry* UDDWealth::GetClassSingleEntry(FName WealthName)
+{
+	for (int i = 0; i < WealthData.Num(); ++i)
+		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
+			if (WealthData[i]->ClassWealthData[j].WealthName.IsEqual(WealthName))
+				return &(WealthData[i]->ClassWealthData[j]);
+	return NULL;
+}
+
+TArray<FClassWealthEntry*> UDDWealth::GetClassKindEntry(FName WealthKind)
+{
+	TArray<FClassWealthEntry*> WealthGroup;
+	for (int i = 0; i < WealthData.Num(); ++i)
+		for (int j = 0; j < WealthData[i]->ClassWealthData.Num(); ++j)
+			if (WealthData[i]->ClassWealthData[j].WealthKind.IsEqual(WealthKind))
+				WealthGroup.Push(&(WealthData[i]->ClassWealthData[j]));
+	return WealthGroup;
 }
 
 void UDDWealth::DealObjectSingleLoadStack()
 {
-	//å®šä¹‰åŠ è½½å®Œæˆçš„åºåˆ—
+	//¶¨Òå¼ÓÔØÍê³ÉµÄĞòÁĞ
 	TArray<ObjectSingleLoadNode*> CompleteStack;
 	for (int i = 0; i < ObjectSingleLoadStack.Num(); ++i)
 	{
-		//éå†åˆ¤æ–­æ˜¯å¦å·²ç»åŠ è½½å®Œæ¯•
+		//ÅĞ¶ÏÊÇ·ñÒÑ¾­¼ÓÔØÍê³É
 		if (ObjectSingleLoadStack[i]->WealthHandle->HasLoadCompleted())
 		{
-			//è®¾ç½®å¯¹åº”èµ„æºå·²ç»åŠ è½½å®Œæˆ
+			//ÉèÖÃ¶ÔÓ¦×ÊÔ´Íê³É
 			ObjectSingleLoadStack[i]->WealthEntry->WealthObject = ObjectSingleLoadStack[i]->WealthEntry->WealthPath.ResolveObject();
+			//·µ»Ø×ÊÔ´¸ø¶ÔÏó
 			BackObjectWealth(ModuleIndex, ObjectSingleLoadStack[i]->ObjectName, ObjectSingleLoadStack[i]->FunName, ObjectSingleLoadStack[i]->WealthEntry->WealthName, ObjectSingleLoadStack[i]->WealthEntry->WealthObject);
-			//æ·»åŠ åˆ°å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-			CompleteStack.Add(ObjectSingleLoadStack[i]);
+			//Ìí¼ÓÒÑ¾­¼ÓÔØÍê³ÉµÄ½Úµãµ½ÁÙÊ±ĞòÁĞ
+			CompleteStack.Push(ObjectSingleLoadStack[i]);
 		}
 	}
-	//éå†å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
+	//Ïú»ÙÒÑ¾­Íê³ÉµÄ½Úµã
 	for (int i = 0; i < CompleteStack.Num(); ++i)
 	{
-		//å°†åŠ è½½å®Œæˆçš„åºåˆ—ä»æ ˆä¸­ç§»é™¤
+		//ÒÆ³ı³ö½ÚµãĞòÁĞ
 		ObjectSingleLoadStack.Remove(CompleteStack[i]);
-		//é‡Šæ”¾èµ„æº
+		//ÊÍ·ÅÄÚ´æ
 		delete CompleteStack[i];
 	}
 }
 
 void UDDWealth::DealObjectKindLoadStack()
 {
-	//å®šä¹‰åŠ è½½å®Œæˆçš„åºåˆ—
+	//¶¨Òå¼ÓÔØÍê³ÉµÄĞòÁĞ
 	TArray<ObjectKindLoadNode*> CompleteStack;
 	for (int i = 0; i < ObjectKindLoadStack.Num(); ++i)
 	{
-		//å¦‚æœå·²ç»åŠ è½½å®Œæˆ
+		//ÅĞ¶ÏÊÇ·ñÒÑ¾­¼ÓÔØÍê³É
 		if (ObjectKindLoadStack[i]->WealthHandle->HasLoadCompleted())
 		{
-			//éå†è®¾ç½®æœªåŠ è½½ç»„ä¸ºåŠ è½½çŠ¶æ€
+			//·µ»Ø×ÊÔ´²ÎÊı
+			TArray<FName> NameGroup;
+			TArray<UObject*> WealthGroup;
+			//Ìî³äÒÑ¼ÓÔØ×ÊÔ´
+			for (int j = 0; j < ObjectKindLoadStack[i]->LoadWealthEntry.Num(); ++j)
+			{
+				NameGroup.Push(ObjectKindLoadStack[i]->LoadWealthEntry[j]->WealthName);
+				WealthGroup.Push(ObjectKindLoadStack[i]->LoadWealthEntry[j]->WealthObject);
+			}
+			//±éÀúÉèÖÃËùÓĞÎ´¼ÓÔØ×ÊÔ´½á¹¹ÌåÎªÒÑ¼ÓÔØ×´Ì¬
 			for (int j = 0; j < ObjectKindLoadStack[i]->UnLoadWealthEntry.Num(); ++j)
 			{
 				ObjectKindLoadStack[i]->UnLoadWealthEntry[j]->WealthObject = ObjectKindLoadStack[i]->UnLoadWealthEntry[j]->WealthPath.ResolveObject();
+				//Ìî³äÒÑ¼ÓÔØ×ÊÔ´
+				NameGroup.Push(ObjectKindLoadStack[i]->UnLoadWealthEntry[j]->WealthName);
+				WealthGroup.Push(ObjectKindLoadStack[i]->UnLoadWealthEntry[j]->WealthObject);
 			}
-			//å°†æœªåŠ è½½åºåˆ—è½¬ç§»åˆ°å·²åŠ è½½åºåˆ—
-			ObjectKindLoadStack[i]->LoadWealthEntry.Append(ObjectKindLoadStack[i]->UnLoadWealthEntry);
-			//æ¸…ç©ºæœªåŠ è½½åºåˆ—
-			ObjectKindLoadStack[i]->UnLoadWealthEntry.Empty();
-			//è¿”å›çš„èµ„æºåå’Œèµ„æºæ•°ç»„
-			TArray<FName> NameGroup;
-			TArray<UObject*> WealthGroup;
-			//éå†å·²ç»åŠ è½½çš„åºåˆ—å¡«å……æ•°ç»„
-			for (int j = 0; j < ObjectKindLoadStack[i]->LoadWealthEntry.Num(); ++j)
-			{
-				NameGroup.Add(ObjectKindLoadStack[i]->LoadWealthEntry[j]->WealthName);
-				WealthGroup.Add(ObjectKindLoadStack[i]->LoadWealthEntry[j]->WealthObject);
-			}
-			//è¿”å›æ•°æ®ç»™è¯·æ±‚å¯¹è±¡
+			//·µ»ØÊı¾İ¸øÇëÇó¶ÔÏó
 			BackObjectWealthKind(ModuleIndex, ObjectKindLoadStack[i]->ObjectName, ObjectKindLoadStack[i]->FunName, NameGroup, WealthGroup);
-			//æ·»åŠ åˆ°å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
-			CompleteStack.Add(ObjectKindLoadStack[i]);
+			//Ìí¼Ó½Úµãµ½ÒÑÍê³ÉĞòÁĞ
+			CompleteStack.Push(ObjectKindLoadStack[i]);
 		}
 	}
-	//éå†å·²ç»åŠ è½½å®Œæˆçš„åºåˆ—
+	//Ïú»ÙÒÑ¾­Íê³ÉµÄ½Úµã
 	for (int i = 0; i < CompleteStack.Num(); ++i)
 	{
-		//å°†åŠ è½½å®Œæˆçš„åºåˆ—ä»æ ˆä¸­ç§»é™¤
+		//ÒÆ³ı³ö½ÚµãĞòÁĞ
 		ObjectKindLoadStack.Remove(CompleteStack[i]);
-		//é‡Šæ”¾èµ„æº
+		//ÊÍ·ÅÄÚ´æ
+		delete CompleteStack[i];
+	}
+}
+
+void UDDWealth::DealClassSingleLoadStack()
+{
+	//¶¨Òå¼ÓÔØÍê³ÉµÄĞòÁĞ
+	TArray<ClassSingleLoadNode*> CompleteStack;
+	for (int i = 0; i < ClassSingleLoadStack.Num(); ++i)
+	{
+		//ÅĞ¶ÏÊÇ·ñÒÑ¾­¼ÓÔØÍê³É
+		if (ClassSingleLoadStack[i]->WealthHandle->HasLoadCompleted())
+		{
+			//ÉèÖÃ¶ÔÓ¦×ÊÔ´Íê³É
+			ClassSingleLoadStack[i]->WealthEntry->WealthClass = Cast<UClass>(ClassSingleLoadStack[i]->WealthEntry->WealthPtr.ToSoftObjectPath().ResolveObject());
+
+			//ÅĞ¶ÏÊÇ·ñÉú³É¶ÔÏó
+			if (ClassSingleLoadStack[i]->IsLoadClass)
+			{
+				//·µ»Ø×ÊÔ´¸ø¶ÔÏó
+				BackClassWealth(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, ClassSingleLoadStack[i]->WealthEntry->WealthClass);
+			}
+			else
+			{
+				//Éú³É²¢ÇÒ´«µİ¶ÔÏóµ½ÇëÇóÕß
+				if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Object)
+				{
+					UObject* InstObject = NewObject<UObject>(this, ClassSingleLoadStack[i]->WealthEntry->WealthClass);
+					InstObject->AddToRoot();
+					BackObjectSingle(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstObject);
+				}
+				else if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Actor)
+				{
+					AActor* InstActor = GetDDWorld()->SpawnActor<AActor>(ClassSingleLoadStack[i]->WealthEntry->WealthClass, ClassSingleLoadStack[i]->SpawnTransform);
+					BackActorSingle(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstActor);
+				}
+				else if (ClassSingleLoadStack[i]->WealthEntry->WealthType == EWealthType::Widget)
+				{
+					UUserWidget* InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), ClassSingleLoadStack[i]->WealthEntry->WealthClass);
+					//±ÜÃâ»ØÊÕ
+					GCWidgetGroup.Push(InstWidget);
+					BackWidgetSingle(ModuleIndex, ClassSingleLoadStack[i]->ObjectName, ClassSingleLoadStack[i]->FunName, ClassSingleLoadStack[i]->WealthEntry->WealthName, InstWidget);
+				}
+			}
+			//Ìí¼ÓÒÑ¾­¼ÓÔØÍê³ÉµÄ½Úµãµ½ÁÙÊ±ĞòÁĞ
+			CompleteStack.Push(ClassSingleLoadStack[i]);
+		}
+	}
+	//Ïú»ÙÒÑ¾­Íê³ÉµÄ½Úµã
+	for (int i = 0; i < CompleteStack.Num(); ++i)
+	{
+		//ÒÆ³ı³ö½ÚµãĞòÁĞ
+		ClassSingleLoadStack.Remove(CompleteStack[i]);
+		//ÊÍ·ÅÄÚ´æ
+		delete CompleteStack[i];
+	}
+}
+
+void UDDWealth::DealClassKindLoadStack()
+{
+	//¶¨ÒåÒÑÍê³É¼ÓÔØ½ÚµãĞòÁĞ
+	TArray<ClassKindLoadNode*> CompleteStack;
+	for (int i = 0; i < ClassKindLoadStack.Num(); ++i)
+	{
+		//ÅĞ¶ÏµÚÒ»´Î¼ÓÔØÍê³É, WealthHandleÒÑ¾­¼ÓÔØÍê³É, UnLoadWealthEntryÊıÁ¿´óÓÚ0
+		if (ClassKindLoadStack[i]->WealthHandle.IsValid() && ClassKindLoadStack[i]->WealthHandle->HasLoadCompleted() && ClassKindLoadStack[i]->UnLoadWealthEntry.Num() > 0)
+		{
+			//Èç¹ûÒÑ¾­¼ÓÔØÍê³É, ÉèÖÃÎ´¼ÓÔØĞòÁĞµÄ×ÊÔ´Ö¸Õë
+			for (int j = 0; j < ClassKindLoadStack[i]->UnLoadWealthEntry.Num(); ++j)
+				ClassKindLoadStack[i]->UnLoadWealthEntry[j]->WealthClass = Cast<UClass>(ClassKindLoadStack[i]->UnLoadWealthEntry[j]->WealthPtr.ToSoftObjectPath().ResolveObject());
+			//½«Î´¼ÓÔØÍê³ÉĞòÁĞÀïµÄ×ÊÔ´Ìî³äµ½ÒÑ¼ÓÔØ×ÊÔ´ĞòÁĞ
+			ClassKindLoadStack[i]->LoadWealthEntry.Append(ClassKindLoadStack[i]->UnLoadWealthEntry);
+			//Çå¿ÕUnLoadWealthEntry
+			ClassKindLoadStack[i]->UnLoadWealthEntry.Empty();
+		}
+
+		//Èç¹ûÎ´¼ÓÔØĞòÁĞÎª0, ËµÃ÷ÒÑ¾­¼ÓÔØÍê³É
+		if (ClassKindLoadStack[i]->UnLoadWealthEntry.Num() == 0)
+		{
+			//¼ÓÔØUClass»òÕßÖ±½ÓÉú³É×ÊÔ´µÄÇé¿öÀ´´¦Àí
+			if (ClassKindLoadStack[i]->IsLoadClass)
+			{
+				//ÉèÖÃ·´Éä²ÎÊı
+				TArray<FName> NameGroup;
+				TArray<UClass*> WealthGroup;
+				for (int j = 0; j < ClassKindLoadStack[i]->LoadWealthEntry.Num(); ++j)
+				{
+					NameGroup.Push(ClassKindLoadStack[i]->LoadWealthEntry[j]->WealthName);
+					WealthGroup.Push(ClassKindLoadStack[i]->LoadWealthEntry[j]->WealthClass);
+				}
+				//·µ»Ø×ÊÔ´¸øÇëÇó¶ÔÏó
+				BackClassWealthKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, NameGroup, WealthGroup);
+				//Ìí¼Ó¸Ã½Úµãµ½ÒÑÍê³ÉĞòÁĞ
+				CompleteStack.Push(ClassKindLoadStack[i]);
+			}
+			else //Èç¹ûÒªÉú³É¶ÔÏó
+			{
+				//´ÓÒÑ¼ÓÔØµÄ×ÊÔ´Êı×éÖĞÈ¡³öµÚÒ»¸ö
+				FClassWealthEntry* WealthEntry = ClassKindLoadStack[i]->LoadWealthEntry[0];
+				//ÒÆ³ı³öĞòÁĞ
+				ClassKindLoadStack[i]->LoadWealthEntry.RemoveAt(0);
+				//¸ù¾İ×ÊÔ´ÀàĞÍÉú³É¶ÔÏó
+				if (WealthEntry->WealthType == EWealthType::Object)
+				{
+					UObject* InstObject = NewObject<UObject>(this, WealthEntry->WealthClass);
+					InstObject->AddToRoot();
+					//Ìí¼ÓÕÒ²ÎÊıÊı×é
+					ClassKindLoadStack[i]->NameGroup.Push(WealthEntry->WealthName);
+					ClassKindLoadStack[i]->ObjectGroup.Push(InstObject);
+					//ÅĞ¶ÏÊÇ·ñÉú³ÉÁËÈ«²¿µÄ¶ÔÏó
+					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
+					{
+						//¸øÇëÇóÕß´«µİÉú³ÉµÄ¶ÔÏó
+						BackObjectKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->ObjectGroup);
+						//Ìí¼Óµ½Íê³ÉĞòÁĞ
+						CompleteStack.Push(ClassKindLoadStack[i]);
+					}
+				}
+				else if (WealthEntry->WealthType == EWealthType::Actor)
+				{
+					//»ñÈ¡Éú³ÉÎ»ÖÃ
+					FTransform SpawnTransform = ClassKindLoadStack[i]->SpawnTransforms.Num() == 1 ? ClassKindLoadStack[i]->SpawnTransforms[0] : ClassKindLoadStack[i]->SpawnTransforms[ClassKindLoadStack[i]->ActorGroup.Num()];
+					//Éú³É¶ÔÏó
+					AActor* InstActor = GetDDWorld()->SpawnActor<AActor>(WealthEntry->WealthClass, SpawnTransform);
+					//Ìí¼ÓÕÒ²ÎÊıÊı×é
+					ClassKindLoadStack[i]->NameGroup.Push(WealthEntry->WealthName);
+					ClassKindLoadStack[i]->ActorGroup.Push(InstActor);
+					//ÅĞ¶ÏÊÇ·ñÉú³ÉÁËÈ«²¿µÄ¶ÔÏó
+					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
+					{
+						//¸øÇëÇóÕß´«µİÉú³ÉµÄ¶ÔÏó
+						BackActorKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->ActorGroup);
+						//Ìí¼Óµ½Íê³ÉĞòÁĞ
+						CompleteStack.Push(ClassKindLoadStack[i]);
+					}
+				}
+				else if (WealthEntry->WealthType == EWealthType::Widget)
+				{
+					UUserWidget* InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), WealthEntry->WealthClass);
+					//±ÜÃâ»ØÊÕ
+					GCWidgetGroup.Push(InstWidget);
+					//Ìí¼ÓÕÒ²ÎÊıÊı×é
+					ClassKindLoadStack[i]->NameGroup.Push(WealthEntry->WealthName);
+					ClassKindLoadStack[i]->WidgetGroup.Push(InstWidget);
+					//ÅĞ¶ÏÊÇ·ñÉú³ÉÁËÈ«²¿µÄ¶ÔÏó
+					if (ClassKindLoadStack[i]->LoadWealthEntry.Num() == 0)
+					{
+						//¸øÇëÇóÕß´«µİÉú³ÉµÄ¶ÔÏó
+						BackWidgetKind(ModuleIndex, ClassKindLoadStack[i]->ObjectName, ClassKindLoadStack[i]->FunName, ClassKindLoadStack[i]->NameGroup, ClassKindLoadStack[i]->WidgetGroup);
+						//Ìí¼Óµ½Íê³ÉĞòÁĞ
+						CompleteStack.Push(ClassKindLoadStack[i]);
+					}
+				}
+			}
+		}
+	}
+	//Çå¿ÕÒÑÍê³É½Úµã
+	for (int i = 0; i < CompleteStack.Num(); ++i)
+	{
+		ClassKindLoadStack.Remove(CompleteStack[i]);
+		delete CompleteStack[i];
+	}
+}
+
+void UDDWealth::DealClassMultiLoadStack()
+{
+	//¶¨ÒåÍê³ÉµÄ½Úµã
+	TArray<ClassMultiLoadNode*> CompleteStack;
+	for (int i = 0; i < ClassMultiLoadStack.Num(); ++i)
+	{
+		//Èç¹ûÃ»ÓĞ¼ÓÔØUClass, ËµÃ÷¼ÓÔØ¾ä±úÓĞĞ§
+		if (!ClassMultiLoadStack[i]->WealthEntry->WealthClass)
+		{
+			//Èç¹û¼ÓÔØ¾ä±ú¼ÓÔØÍê±Ï
+			if (ClassMultiLoadStack[i]->WealthHandle->HasLoadCompleted())
+				ClassMultiLoadStack[i]->WealthEntry->WealthClass = Cast<UClass>(ClassMultiLoadStack[i]->WealthHandle->GetLoadedAsset());
+		}
+		//ÔÙ´ÎÅĞ¶ÏWealthClassÊÇ·ñ´æÔÚ, Èç¹û´æÔÚ½øÈëÉú³É¶ÔÏó½×¶Î
+		if (ClassMultiLoadStack[i]->WealthEntry->WealthClass)
+		{
+			//Çø·ÖÀàĞÍÉú³É¶Ô
+			if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Object)
+			{
+				UObject* InstObject = NewObject<UObject>(this, ClassMultiLoadStack[i]->WealthEntry->WealthClass);
+				InstObject->AddToRoot();
+				ClassMultiLoadStack[i]->ObjectGroup.Push(InstObject);
+				//Èç¹ûÉú²úÍê±Ï
+				if (ClassMultiLoadStack[i]->ObjectGroup.Num() == ClassMultiLoadStack[i]->Amount)
+				{
+					//·µ»Ø¶ÔÏó¸øÇëÇóÕß
+					BackObjectMulti(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->ObjectGroup);
+					//Ìí¼Óµ½Íê³ÉĞòÁĞ
+					CompleteStack.Push(ClassMultiLoadStack[i]);
+				}
+			}
+			else if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Actor)
+			{
+				//»ñÈ¡Éú³ÉÎ»ÖÃ
+				FTransform SpawnTransform = ClassMultiLoadStack[i]->SpawnTransforms.Num() == 1 ? ClassMultiLoadStack[i]->SpawnTransforms[0] : ClassMultiLoadStack[i]->SpawnTransforms[ClassMultiLoadStack[i]->ActorGroup.Num()];
+				//Éú³É¶ÔÏó
+				AActor* InstActor = GetDDWorld()->SpawnActor<AActor>(ClassMultiLoadStack[i]->WealthEntry->WealthClass, SpawnTransform);
+				//Ìí¼Ó²ÎÊıÊı×é
+				ClassMultiLoadStack[i]->ActorGroup.Push(InstActor);
+				//ÅĞ¶ÏÊÇ·ñÉú³ÉÁËÈ«²¿µÄ¶ÔÏó
+				if (ClassMultiLoadStack[i]->ActorGroup.Num() == ClassMultiLoadStack[i]->Amount)
+				{
+					//¸øÇëÇóÕß´«µİÉú³ÉµÄ¶ÔÏó
+					BackActorMulti(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->ActorGroup);
+					//Ìí¼Óµ½Íê³ÉĞòÁĞ
+					CompleteStack.Push(ClassMultiLoadStack[i]);
+				}
+			}
+			else if (ClassMultiLoadStack[i]->WealthEntry->WealthType == EWealthType::Widget)
+			{
+				UUserWidget* InstWidget = CreateWidget<UUserWidget>(GetDDWorld(), ClassMultiLoadStack[i]->WealthEntry->WealthClass);
+				//±ÜÃâ»ØÊÕ
+				GCWidgetGroup.Push(InstWidget);
+				//Ìí¼Ó²ÎÊıÊı×é
+				ClassMultiLoadStack[i]->WidgetGroup.Push(InstWidget);
+				//ÅĞ¶ÏÊÇ·ñÉú³ÉÁËÈ«²¿µÄ¶ÔÏó
+				if (ClassMultiLoadStack[i]->WidgetGroup.Num() == ClassMultiLoadStack[i]->Amount)
+				{
+					//¸øÇëÇóÕß´«µİÉú³ÉµÄ¶ÔÏó
+					BackWidgetMulti(ModuleIndex, ClassMultiLoadStack[i]->ObjectName, ClassMultiLoadStack[i]->FunName, ClassMultiLoadStack[i]->WealthEntry->WealthName, ClassMultiLoadStack[i]->WidgetGroup);
+					//Ìí¼Óµ½Íê³ÉĞòÁĞ
+					CompleteStack.Push(ClassMultiLoadStack[i]);
+				}
+			}
+		}
+	}
+	//Çå¿ÕÒÑÍê³É½Úµã
+	for (int i = 0; i < CompleteStack.Num(); ++i)
+	{
+		ClassMultiLoadStack.Remove(CompleteStack[i]);
 		delete CompleteStack[i];
 	}
 }

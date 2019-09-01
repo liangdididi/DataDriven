@@ -3,29 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DDMM.h"
 #include "UObject/NoExportTypes.h"
-#include "SoftObjectPath.h"
+#include "DDMM.h"
 #include "Engine/StreamableManager.h"
 #include "DDWealth.generated.h"
 
 
-struct ClassSingleLoadNode;
-struct ClassMultiLoadNode;
-struct ClassKindLoadNode;
 
+//¼ÓÔØObject½Úµã
 struct ObjectSingleLoadNode;
 struct ObjectKindLoadNode;
 
-class AActor;
-class UUserWidget;
-
-class UDDObject;
-class ADDActor;
-class UDDUserWidget;
+//¼ÓÔØµ¥¸öClass
+struct ClassSingleLoadNode;
+struct ClassKindLoadNode;
+struct ClassMultiLoadNode;
 
 /**
- *
+ * 
  */
 UCLASS()
 class DATADRIVEN_API UDDWealth : public UObject, public IDDMM
@@ -38,143 +33,95 @@ public:
 
 	virtual void WealthBeginPlay();
 
-	//èµ„æºçš„Tickå‡½æ•°
+	//×ÊÔ´µÄTickº¯Êı
 	virtual void WealthTick(float DeltaSeconds);
 
+	//Ö¸¶¨×ÊÔ´×é
 	void AssignData(TArray<UWealthData*>& InWealthData);
 
-	//å¤–éƒ¨æ–¹æ³•, åˆ›å»ºæ–°çš„Classèµ„æº
-	void BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform);
-	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
-	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
-
-	//å¤–éƒ¨æ–¹æ³•åŠ è½½Classèµ„æº
-	void LoadClassWealth(FName WealthName, FName ObjectName, FName FunName);
-	void LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName);
-
-	//å¤–éƒ¨æ–¹æ³•è·å–Objectèµ„æº
-	void LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName);
-	void LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName);
-
-	//å¤–éƒ¨æ–¹æ³•å•çº¯çš„è·å–èµ„æºé“¾æ¥
+	//Íâ²¿·½·¨µ¥´¿»ñÈ¡×ÊÔ´Á´½Ó
 	FWealthURL* GainWealthURL(FName WealthName);
 	void GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL);
 
-public:
+	//¼ÓÔØObjectÀàĞÍ×ÊÔ´½Ó¿Ú
+	void LoadObjectWealth(FName WealthName, FName ObjectName, FName FunName);
+	void LoadObjectWealthKind(FName WealthKind, FName ObjectName, FName FunName);
+
+	//¼ÓÔØClassÀàĞÍ×ÊÔ´½Ó¿Ú
+	void LoadClassWealth(FName WealthName, FName ObjectName, FName FunName);
+	void LoadClassWealthKind(FName WealthKind, FName ObjectName, FName FunName);
+
+	//´´½¨Ò»¸ö¶ÔÏóÊµÀı
+	void BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName ObjectName, FName FunName, FTransform SpawnTransform);
+
+	//´´½¨Í¬×ÊÔ´ÖÖÀàÃûµÄ¶ÔÏóÊµÀı, Í¬ÖÖÀàÃûÏÂµÄÃ¿¸ö×ÊÔ´Á´½Ó´´½¨Ò»¸ö¶ÔÏóÊµÀı
+	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
+
+	//´´½¨¶à¸öÍ¬×ÊÔ´ÃûµÄ¶ÔÏóÊµÀı
+	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName ObjectName, FName FunName, TArray<FTransform> SpawnTransforms);
+
 
 protected:
 
-	//éå†å™¨, è·å–å¯¹åº”èµ„æºè·¯å¾„
-	FClassWealthEntry* GetClassSinglePath(FName WealthName);
+	//»ñÈ¡Object×ÊÔ´½á¹¹Ìå
+	FObjectWealthEntry* GetObjectSingleEntry(FName WealthName);
+	TArray<FObjectWealthEntry*> GetObjectKindEntry(FName WealthKind);
 
-	//éå†å™¨, è·å–å¯¹åº”èµ„æºè·¯å¾„
-	TArray<FClassWealthEntry*> GetClassKindPath(FName WealthKind);
+	//»ñÈ¡Class×ÊÔ´½á¹¹Ìå
+	FClassWealthEntry* GetClassSingleEntry(FName WealthName);
+	TArray<FClassWealthEntry*> GetClassKindEntry(FName WealthKind);
 
-	//éå†å™¨, è·å–å¯¹åº”èµ„æºè·¯å¾„
-	FObjectWealthEntry* GetObjectSinglePath(FName WealthName);
-
-	//éå†å™¨, è·å–å¯¹åº”èµ„æºè·¯å¾„
-	TArray<FObjectWealthEntry*> GetObjectKindPath(FName WealthKind);
-
-	//å¤„ç†å•ç‹¬åŠ è½½èµ„æºé˜Ÿåˆ—
+	//´¦Àí¼ÓÔØµ¥¸öObject½ÚµãµÄ·½·¨
+	void DealObjectSingleLoadStack();
+	//´¦ÀíÅúÁ¿¼ÓÔØObject½ÚµãµÄ·½·¨
+	void DealObjectKindLoadStack();
+	//´¦Àí¼ÓÔØµ¥¸öClass½ÚµãµÄ·½·¨
 	void DealClassSingleLoadStack();
-
-	//å¤„ç†æ‰¹é‡ç”Ÿäº§çš„èµ„æºé˜Ÿåˆ—
+	//´¦ÀíÅúÁ¿¼ÓÔØClass½ÚµãµÄ·½·¨
+	void DealClassKindLoadStack();
+	//´¦Àí´´½¨¶à¸ö¶ÔÏóµÄ·½·¨
 	void DealClassMultiLoadStack();
 
-	//å¤„ç†èµ„æºç§ç±»ç”Ÿäº§é˜Ÿåˆ—
-	void DealClassKindLoadStack();
-
-	//å¤„ç†å•ç‹¬åŠ è½½UEèµ„æºé˜Ÿåˆ—
-	void DealObjectSingleLoadStack();
-
-	//å¤„ç†UEèµ„æºç§ç±»åŠ è½½é˜Ÿåˆ—
-	void DealObjectKindLoadStack();
-
 protected:
 
+	//¼ÓÔØÆ÷
 	FStreamableManager WealthLoader;
 
-	//èµ„æºç»„
+	//×ÊÔ´×é
 	TArray<UWealthData*> WealthData;
-
-	//ç­‰å¾…åŠ è½½çš„é˜Ÿåˆ—
-	TArray<ClassSingleLoadNode*> ClassSingleLoadStack;
-
-	TArray<ClassMultiLoadNode*> ClassMultiLoadStack;
-
-	TArray<ClassKindLoadNode*> ClassKindLoadStack;
-
-	TArray<ObjectSingleLoadNode*> ObjectSingleLoadStack;
-
-	TArray<ObjectKindLoadNode*> ObjectKindLoadStack;
 
 	UPROPERTY()
 		TArray<UUserWidget*> GCWidgetGroup;
 
+	//¼ÓÔØ½Úµã¶ÓÁĞ
+	TArray<ObjectSingleLoadNode*> ObjectSingleLoadStack;
+	TArray<ObjectKindLoadNode*> ObjectKindLoadStack;
+	TArray<ClassSingleLoadNode*> ClassSingleLoadStack;
+	TArray<ClassKindLoadNode*> ClassKindLoadStack;
+	TArray<ClassMultiLoadNode*> ClassMultiLoadStack;
+
+
 protected:
 
-	DDOBJFUNC_TWO(BackObject, FName, BackName, UObject*, BackObject);
-	DDOBJFUNC_TWO(BackObjects, FName, BackName, TArray<UObject*>, BackObjects);
-	DDOBJFUNC_TWO(BackObjectKind, TArray<FName>, BackNames, TArray<UObject*>, BackObjects);
-
-	DDOBJFUNC_TWO(BackActor, FName, BackName, AActor*, BackActor);
-	DDOBJFUNC_TWO(BackActors, FName, BackName, TArray<AActor*>, BackActors);
-	DDOBJFUNC_TWO(BackActorKind, TArray<FName>, BackNames, TArray<AActor*>, BackActors);
-
-	DDOBJFUNC_TWO(BackWidget, FName, BackName, UUserWidget*, BackWidget);
-	DDOBJFUNC_TWO(BackWidgets, FName, BackName, TArray<UUserWidget*>, BackWidgets);
-	DDOBJFUNC_TWO(BackWidgetKind, TArray<FName>, BackNames, TArray<UUserWidget*>, BackWidgets);
-
-	DDOBJFUNC_TWO(BackClassWealth, FName, BackName, UClass*, BackWealth);
-	DDOBJFUNC_TWO(BackClassWealthKind, TArray<FName>, BackNames, TArray<UClass*>, BackWealths);
-
-	//èµ„æºç±»çš„ä¸åœ¨è¿™é‡ŒCast, ç›´æ¥è¿”å›UObject
+	//¼ÓÔØUObject·´Éä»Øµ÷º¯Êı
 	DDOBJFUNC_TWO(BackObjectWealth, FName, BackName, UObject*, BackWealth);
 	DDOBJFUNC_TWO(BackObjectWealthKind, TArray<FName>, BackNames, TArray<UObject*>, BackWealths);
 
+	//¼ÓÔØUClass·´Éä»Øµ÷º¯Êı
+	DDOBJFUNC_TWO(BackClassWealth, FName, BackName, UClass*, BackWealth);
+	DDOBJFUNC_TWO(BackClassWealthKind, TArray<FName>, BackNames, TArray<UClass*>, BackWealths);
+
+	//Éú³É¶ÔÏó·´Éä»Øµ÷º¯Êı
+	DDOBJFUNC_TWO(BackObjectSingle, FName, BackName, UObject*, BackObject);
+	DDOBJFUNC_TWO(BackObjectKind, TArray<FName>, BackNames, TArray<UObject*>, BackObjects);
+	DDOBJFUNC_TWO(BackObjectMulti, FName, BackName, TArray<UObject*>, BackObjects);
+
+	DDOBJFUNC_TWO(BackActorSingle, FName, BackName, AActor*, BackActor);
+	DDOBJFUNC_TWO(BackActorKind, TArray<FName>, BackNames, TArray<AActor*>, BackActors);
+	DDOBJFUNC_TWO(BackActorMulti, FName, BackName, TArray<AActor*>, BackActors);
+
+	DDOBJFUNC_TWO(BackWidgetSingle, FName, BackName, UUserWidget*, BackWidget);
+	DDOBJFUNC_TWO(BackWidgetKind, TArray<FName>, BackNames, TArray<UUserWidget*>, BackWidgets);
+	DDOBJFUNC_TWO(BackWidgetMulti, FName, BackName, TArray<UUserWidget*>, BackWidgets);
+	
 };
-
-
-
-
-//å¼‚æ­¥åŠ è½½å¤šä¸ªèµ„æº, ä¸è¿”å›å¥æŸ„
-/*template<typename UserClass>
-void AsynMultiLoad(TArray<FStringAssetReference>& WealthPaths, UserClass InObject, typename FStreamableDelegate::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod);*/
-
-//ä½¿ç”¨UObjectLibraryæ‰¹é‡åŠ è½½èµ„æºåˆ°å†…å­˜
-//void LibraryLoad(FString FilePath, TSubclassOf<UObject> ObjectClass);
-
-//template<typename WealthClass>
-//WealthClass* UDDWealth::SynSingleLoad(FStringAssetReference WealthPath)
-//{
-//	return Cast<WealthClass*>(WealthLoader->SynchronousLoad(WealthPath));
-//}
-
-
-//template<typename WealthClass>
-//TArray<WealthClass*>&
-//UDDWealth::SynMultiLoad(TArray<FStringAssetReference>& WealthPaths)
-//{
-//	TArray<FSoftObjectPath> SoftPaths;
-//	for (int32 i = 0; i < WealthPaths.Num(); ++i)
-//		SoftPaths.AddUnique(WealthPaths[i]);
-//	TSharedPtr<FStreamableHandle> WealthHandle = WealthLoader->RequestSyncLoad(SoftPaths);
-//	TArray<WealthClass*> WealthGroup;
-//	TArray<UObject*> ObjectGroup;
-//	if (WealthHandle->HasLoadCompleted())
-//		WealthHandle->GetLoadedAssets(ObjectGroup);
-//	for (UObject* Obj : ObjectGroup)
-//		WealthGroup.Add(Cast<WealthClass>(Obj));
-//	return WealthGroup;
-//}
-
-//template<typename UserClass>
-//void UDDWealth::AsynMultiLoad(TArray<FStringAssetReference>& WealthPaths, UserClass InObject, typename FStreamableDelegate::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
-//{
-//	TArray<FSoftObjectPath> SoftPaths;
-//	for (int32 i = 0; i < WealthPaths.Num(); ++i)
-//		SoftPaths.AddUnique(WealthPaths[i]);
-//	WealthLoader->RequestAsyncLoad(SoftPaths, FStreamableDelegate::CreateUObject(InObject, InMethod));
-//}
-

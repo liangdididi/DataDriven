@@ -7,7 +7,6 @@
 #include "DDOO.h"
 #include "DDCharacter.generated.h"
 
-
 UCLASS()
 class DATADRIVEN_API ADDCharacter : public ACharacter, public IDDOO
 {
@@ -36,8 +35,5 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	
 
-	
-	
 };

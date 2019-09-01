@@ -6,62 +6,52 @@
 #include "DDCore/DDModule.h"
 #include "DDCenterModule.generated.h"
 
-
+class IDDOO;
 /**
- *
+ * 
  */
 UCLASS()
 class DATADRIVEN_API UDDCenterModule : public UDDModule
 {
 	GENERATED_BODY()
-
+	
 public:
-
-	UDDCenterModule();
-
-	//virtual void InitializeComponent() override;
-
-	//è¿­ä»£è°ƒç”¨æœ¬æ¨¡ç»„ä»¥åŠå­æ¨¡ç»„çš„EditChangeModuleTypeæ–¹æ³•
-	virtual void IterChangeModuleType(UDDModule* Module, FName ModType);
-
-	//æå–æ‰€æœ‰æ¨¡ç»„åˆ°æ¨¡ç»„æ•°ç»„, ä¼ å…¥æšä¸¾åå­—
+	//µü´úµ÷ÓÃ±¾Ä£×éÒÔ¼°×ÓÄ£×éµÄEditChangeModuleType·½·¨
+	void IterChangeModuleType(UDDModule* Module, FName ModType);
+	//µİ¹é´´½¨Ä£¿é
+	void IterCreateManager(UDDModule* Module);
+	//µİ¹é³õÊ¼»¯
+	void IterModuleInit(UDDModule* Module);
+	//µİ¹éBeginPlay
+	void IterModuleBeginPlay(UDDModule* Module);
+	//µİ¹éTick
+	void IterModuleTick(UDDModule* Module, float DeltaSeconds);
+	//ÌáÈ¡ËùÓĞÄ£×éµ½Ä£×éÊı×é, ´«ÈëÃ¶¾ÙÃû×Ö
 	void TotalGatherModule(FName ModType);
+	//ÌáÈ¡ËùÓĞÄ£×éµ½Êı×é
+	void IterGatherModule(UDDModule* Module, TArray<UDDModule*>& GatherGroup);
+	//×¢²á¶ÔÏóµ½Ä£×é
+	bool RegisterToModule(IDDOO* ObejctInst);
 
-	//è¿­ä»£å®ä¾‹åŒ–ç®¡ç†å™¨ç»„ä»¶
-	virtual void IterCreateManager(UDDModule* Module);
+	//Ö´ĞĞ·´Éä·½·¨
+	void AllotExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
 
-	//è¿­ä»£è°ƒç”¨æœ¬æ¨¡ç»„ä»¥åŠå­æ¨¡ç»„çš„BeginPlayæ–¹æ³•,ä¸ç”¨åå°„
-	virtual void IterModuleInit(UDDModule* Module);
+	//Ö´ĞĞ·´Éä·½·¨
+	void AllotExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
-	//è¿­ä»£è°ƒç”¨æœ¬æ¨¡ç»„ä»¥åŠå­æ¨¡ç»„çš„BeginPlayæ–¹æ³•,ä¸ç”¨åå°„
-	virtual void IterModuleBeginPlay(UDDModule* Module);
-
-	//è¿­ä»£è°ƒç”¨æœ¬æ¨¡ç»„ä»¥åŠå­æ¨¡ç»„çš„Tickæ–¹æ³•,ä¸ç”¨åå°„
-	virtual void IterModuleTick(UDDModule* Module, float DeltaSeconds);
-
-	//è¿­ä»£æ³¨å†Œç‰©å“åˆ°æ¨¡ç»„
-	virtual bool RegisterToModule(IDDOO* Object);
-
-	//è¿­ä»£æ‰§è¡Œæ¨¡ç»„æ–¹æ³•
-	virtual void AllotExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
-
-	//è¿­ä»£æ‰§è¡Œå¯¹è±¡æ–¹æ³•
-	virtual void AllotExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
-
-	//æ³¨å†Œè°ƒç”¨æ–¹æ³•
+	//×¢²áµ÷ÓÃ½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
-	DDFunHandle RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun);
-
+	DDFunHandle AllotRegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun);
 
 protected:
 
-	//ä¿å­˜æ¨¡ç»„çš„æ•°ç»„, é¡ºåºä¸æšä¸¾ç›¸åŒ
+	//±£´æÄ£×éµÄÊı×é, Ë³ĞòÓëÃ¶¾ÙÏàÍ¬
 	TArray<UDDModule*> ModuleGroup;
 
 };
 
 template<typename RetType, typename... VarTypes>
-DDFunHandle UDDCenterModule::RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun)
+DDFunHandle UDDCenterModule::AllotRegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun)
 {
 	if (ModuleGroup[ModuleID])
 		return ModuleGroup[ModuleID]->RegisterFunPort<RetType, VarTypes...>(CallName, InsFun);

@@ -1,54 +1,77 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDFrameWidget.h"
+#include "CanvasPanel.h"
+#include "CanvasPanelSlot.h"
+#include "Image.h"
 #include "WidgetTree.h"
 #include "Overlay.h"
 #include "OverlaySlot.h"
-#include "CanvasPanel.h"
-#include "CanvasPanelSlot.h"
-#include "DDPanelWidget.h"
-#include "Image.h"
-
-
+#include "DDUI/DDPanelWidget.h"
 
 bool UDDFrameWidget::Initialize()
 {
 	if (!Super::Initialize()) return false;
 
-	//è·å–æ ¹èŠ‚ç‚¹, UE4é»˜è®¤éƒ½æ˜¯UCanvasPanel
+	//»ñÈ¡¸ù½Úµã
 	RootCanvas = Cast<UCanvasPanel>(GetRootWidget());
 	RootCanvas->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 
-	//ç”Ÿæˆé®ç½©
+	//Éú³ÉÕÚÕÖ
 	MaskPanel = WidgetTree->ConstructWidget<UImage>(UImage::StaticClass());
 
-	//è®¾ç½®é€æ˜åº¦çš„å€¼
+	//ÉèÖÃÍ¸Ã÷¶È
 	NormalLucency = FLinearColor(1.f, 1.f, 1.f, 0.f);
 	TranslucenceLucency = FLinearColor(0.f, 0.f, 0.f, 0.6f);
 	ImPenetrableLucency = FLinearColor(0.f, 0.f, 0.f, 0.3f);
 
+	WaitShowTaskName = FName("WaitShowTask");
+
 	return true;
 }
 
+void UDDFrameWidget::AdvanceLoadPanel(FName PanelName)
+{
+	//Èç¹ûÒÑ¾­´æÔÚÈ«²¿×é´æÔÚ¸ÃÃæ°å»òÔòÒÑ¾­¼ÓÔØÃæ°åÃû×é´æÔÚ¸ÃÃæ°åÃû
+	if (AllPanelGroup.Contains(PanelName) || LoadedPanelName.Contains(PanelName))
+		return;
+	//½øĞĞÒì²½¼ÓÔØ
+	BuildSingleClassWealth(EWealthType::Widget, PanelName, "AcceptAdvancePanel");
+	//Ìí¼ÓÃæ°åÃûµ½ÒÑ¾­¼ÓÔØÃû×Ö×é
+	LoadedPanelName.Push(PanelName);
+}
 
 void UDDFrameWidget::ShowUIPanel(FName PanelName)
 {
-	//å¦‚æœè¿™ä¸ªé¢æ¿å·²ç»åœ¨æ˜¾ç¤ºæˆ–è€…å·²ç»åœ¨Popæ ˆä¸­, ç›´æ¥è¿”å›
-	if (ShowPanelGroup.Contains(PanelName) || PopPanelStack.Contains(PanelName)) return;
-	//å¦‚æœè¿™ä¸ªå¯¹è±¡æ²¡æœ‰åœ¨å…¨éƒ¨ç»„ä¸­, å¹¶ä¸”ä¹Ÿæ²¡æœ‰è¿›è¡Œè¿‡åŠ è½½, è¿›è¡Œå¼‚æ­¥åŠ è½½
+	//Èç¹ûÃæ°åÊÇ·ñÒÑ¾­ÏÔÊ¾ÔÚ½çÃæÉÏ
+	if (ShowPanelGroup.Contains(PanelName) || PopPanelStack.Contains(PanelName))
+		return;
+	//Èç¹ûÅĞ¶ÏÊÇ·ñÒÑ¾­¼ÓÔØ¸ÃÃæ°å
 	if (!AllPanelGroup.Contains(PanelName) && !LoadedPanelName.Contains(PanelName))
 	{
-		BulidSingleClassWealth(EWealthType::Widget, PanelName, "AcceptPanelWidget");
+		BuildSingleClassWealth(EWealthType::Widget, PanelName, "AcceptPanelWidget");
 		LoadedPanelName.Push(PanelName);
-		//ç›´æ¥è¿”å›
 		return;
 	}
 
-	//å¦‚æœå…¨éƒ¨ç»„å·²ç»å­˜åœ¨è¯¥Panel, LoadedPanelNameç»„ä¸­ä¸€å®šå­˜åœ¨, ä¸è¿›è¡Œæ£€æŸ¥
+	//Èç¹ûÔ¤¼ÓÔØÎ´Íê³É, ¾Íµ÷ÓÃÏÔÊ¾ÃüÁî, Æô¶¯Ñ­»·¼ì²âº¯Êı, ¼ì²âµ½Ô¤¼ÓÔØÍê³ÉµÄÊ±ºò, ÏÔÊ¾UIÃæ°å
+	if (!AllPanelGroup.Contains(PanelName) && LoadedPanelName.Contains(PanelName) && !WaitShowPanelName.Contains(PanelName))
+	{
+		//Ìí¼ÓÃû×Öµ½Ô¤ÏÔÊ¾Ãû×Ö×é
+		WaitShowPanelName.Push(PanelName);
+		//Æô¶¯Ñ­»·¼ì²â¼ÓÔØÍê±ÏÔòÏÔÊ¾º¯Êı, Ã¿0.3Ãë¼ì²âÒ»´Î
+		InvokeRepeat(WaitShowTaskName, 0.3f, 0.3f, this, &UDDFrameWidget::WaitShowPanel);
+		return;
+	}
+
+
+	//Èç¹û´æÔÚ¸ÃUIÃæ°å
 	if (AllPanelGroup.Contains(PanelName))
 	{
-		//é€šè¿‡PanelWidgetçš„çˆ¶ç±»æ˜¯å¦å­˜åœ¨åˆ¤å®šPanelæ˜¯å¦å·²ç»è¿›å…¥è¿‡UI
+		//ÅĞ¶¨ÊÇ·ñÊÇµÚÒ»´ÎÏÔÊ¾ÔÚ½çÃæÉÏ
 		UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
+		//Èç¹ûÃ»ÓĞ¸¸¿Ø¼ş, ËµÃ÷Ã»ÓĞ½øÈë¹ı½çÃæ
 		if (PanelWidget->GetParent())
 			DoShowUIPanel(PanelName);
 		else
@@ -56,867 +79,45 @@ void UDDFrameWidget::ShowUIPanel(FName PanelName)
 	}
 }
 
-void UDDFrameWidget::HideUIPanel(FName PanelName)
-{
-	//å¦‚æœè¿™ä¸ªé¢æ¿ä¸åœ¨æ˜¾ç¤ºç»„ä¹Ÿä¸åœ¨Popæ ˆä¸­, ç›´æ¥è¿”å›
-	if (!ShowPanelGroup.Contains(PanelName) && !PopPanelStack.Contains(PanelName)) return;
-	//å¦‚æœè¿™ä¸ªé¢æ¿æ²¡æœ‰åŠ è½½, ç›´æ¥è¿”å›
-	if (!AllPanelGroup.Contains(PanelName)) return;
-	//æ ¹æ®ç±»å‹å¤„ç†
-	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
-	switch (PanelWidget->UINature.PanelShowType)
-	{
-	case EPanelShowType::DoNothing:
-		HidePanelDoNothing(PanelWidget);
-		break;
-	case EPanelShowType::HideOther:
-		HidePanelHideOther(PanelWidget);
-		break;
-	case EPanelShowType::Reverse:
-		HidePanelReverse(PanelWidget);
-		break;
-	}
-}
 
-void UDDFrameWidget::ExitUIPanel(FName PanelName)
+
+void UDDFrameWidget::AcceptAdvancePanel(FName BackName, UUserWidget* BackWidget)
 {
-	//å¦‚æœè¿™ä¸ªé¢æ¿æ²¡æœ‰åŠ è½½, ç›´æ¥è¿”å›
-	if (!AllPanelGroup.Contains(PanelName)) return;
-	//è¿è¡Œåˆ°è¿™é‡Œè¯´æ˜åœ¨AllPanelä¸­ä½†, å¦‚æœè¿™ä¸ªé¢æ¿ä¸åœ¨æ˜¾ç¤ºç»„ä¹Ÿä¸åœ¨Popæ ˆä¸­, ç›´æ¥è¿›è¡Œæ•°æ®ç§»é™¤å¹¶ä¸”è¿”å›
-	if (!ShowPanelGroup.Contains(PanelName) && !PopPanelStack.Contains(PanelName))
+	UDDPanelWidget* PanelWidget = Cast<UDDPanelWidget>(BackWidget);
+
+	//Èç¹û²»ÊÇ¼Ì³ĞPanelWidget
+	if (!PanelWidget)
 	{
-		//è·å–å¯¹è±¡
-		UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
-		//ç§»é™¤æ•°æ®å¹¶ä¸”é”€æ¯PanelWidget
-		AllPanelGroup.Remove(PanelName);
-		LoadedPanelName.Remove(PanelName);
-		PanelWidget->PanelExit();
+		DDH::Debug() << "Load UI Panel : " << BackName << " Is Not DDPanelWidget" << DDH::Endl();
 		return;
 	}
 
-	//æ ¹æ®ç±»å‹å¤„ç†
-	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
-	switch (PanelWidget->UINature.PanelShowType)
-	{
-	case EPanelShowType::DoNothing:
-		ExitPanelDoNothing(PanelWidget);
-		break;
-	case EPanelShowType::HideOther:
-		ExitPanelHideOther(PanelWidget);
-		break;
-	case EPanelShowType::Reverse:
-		ExitPanelReverse(PanelWidget);
-		break;
-	}
+	//×¢²áµ½¿ò¼Ü,²»×¢²áÀàÃû, BackName±ØĞëÊÇÃæ°åÃûÒÔ¼°ObjectName
+	PanelWidget->RegisterToModule(ModuleIndex, BackName);
+
+	//Ìí¼Óµ½È«²¿×é
+	AllPanelGroup.Add(BackName, PanelWidget);
 }
 
 void UDDFrameWidget::AcceptPanelWidget(FName BackName, UUserWidget* BackWidget)
 {
 	UDDPanelWidget* PanelWidget = Cast<UDDPanelWidget>(BackWidget);
 
-	//å¦‚æœPanelWidgetä¸æ˜¯UDDPanelWidgetç±»å‹
+	//Èç¹û²»ÊÇ¼Ì³ĞPanelWidget
 	if (!PanelWidget)
 	{
-		DDH::Debug() << "Load Panel : " << BackName << " Is Not DDPanelWidget" << DDH::Endl();
+		DDH::Debug() << "Load UI Panel : " << BackName << " Is Not DDPanelWidget" << DDH::Endl();
 		return;
 	}
 
-	//æ³¨å†Œåˆ°æ¡†æ¶, ä¸æ³¨å†Œç±»å
+	//×¢²áµ½¿ò¼Ü,²»×¢²áÀàÃû, BackName±ØĞëÊÇÃæ°åÃûÒÔ¼°ObjectName
 	PanelWidget->RegisterToModule(ModuleIndex, BackName);
 
-	//æ·»åŠ åˆ°å…¨éƒ¨ç»„
+	//Ìí¼Óµ½È«²¿×é
 	AllPanelGroup.Add(BackName, PanelWidget);
-	//å› ä¸ºæ˜¯ç¬¬ä¸€æ¬¡åŠ è½½UI, æ‰€ä»¥æ‰§è¡ŒEnterUIæ–¹æ³•
+
+	//½øĞĞµÚÒ»´ÎÏÔÊ¾, Ö´ĞĞ½øÈë½çÃæ·½·¨
 	DoEnterUIPanel(BackName);
-}
-
-
-
-void UDDFrameWidget::DoShowUIPanel(FName PanelName)
-{
-	//ä»å…¨éƒ¨ç»„è·å–å¯¹è±¡
-	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
-	//åŒºåˆ†ç±»å‹è¿›è¡Œæ˜¾ç¤º
-	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
-	{
-		//è·å–å·¥ä½œLayout
-		UCanvasPanel* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UCanvasPanel>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveCanvas.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveCanvas.Pop();
-				ActiveCanvas.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveCanvas.Push(WorkLayout);
-		}
-
-		//æ ¹æ®ç±»å‹æ‰§è¡Œæ˜¾ç¤º
-		switch (PanelWidget->UINature.PanelShowType)
-		{
-		case EPanelShowType::DoNothing:
-			ShowPanelDoNothing(PanelWidget);
-			return;
-		case EPanelShowType::HideOther:
-			ShowPanelHideOther(PanelWidget);
-			return;
-		case EPanelShowType::Reverse:
-			ShowPanelReverse(PanelWidget);
-			return;
-		}
-	}
-	else if (PanelWidget->UINature.LayoutType == ELayoutType::Overlay)
-	{
-		UOverlay* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UOverlay>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveOverlay.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveOverlay.Pop();
-				ActiveOverlay.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveOverlay.Push(WorkLayout);
-		}
-
-		//æ ¹æ®ç±»å‹æ‰§è¡Œæ˜¾ç¤º
-		switch (PanelWidget->UINature.PanelShowType)
-		{
-		case EPanelShowType::DoNothing:
-			ShowPanelDoNothing(PanelWidget);
-			return;
-		case EPanelShowType::HideOther:
-			ShowPanelHideOther(PanelWidget);
-			return;
-		case EPanelShowType::Reverse:
-			ShowPanelReverse(PanelWidget);
-			return;
-		}
-	}
-}
-
-void UDDFrameWidget::AdvanceLoadPanel(FName PanelName)
-{
-	//å¦‚æœå·²ç»åœ¨å…¨éƒ¨ç»„å†…äº†, ç›´æ¥è¿”å›
-	if (AllPanelGroup.Contains(PanelName) && LoadedPanelName.Contains(PanelName)) return;
-	//è¿›è¡Œå¼‚æ­¥åŠ è½½
-	BulidSingleClassWealth(EWealthType::Widget, PanelName, "AcceptAdvancePanel");
-	LoadedPanelName.Push(PanelName);
-}
-
-void UDDFrameWidget::AcceptAdvancePanel(FName BackName, UUserWidget* BackWidget)
-{
-	UDDPanelWidget* PanelWidget = Cast<UDDPanelWidget>(BackWidget);
-
-	//å¦‚æœPanelWidgetä¸æ˜¯UDDPanelWidgetç±»å‹
-	if (!PanelWidget)
-	{
-		DDH::Debug() << "Load Panel : " << BackName << " Is Not DDPanelWidget" << DDH::Endl();
-		return;
-	}
-
-	//æ³¨å†Œåˆ°æ¡†æ¶, ä¸æ³¨å†Œç±»å
-	PanelWidget->RegisterToModule(ModuleIndex, BackName);
-
-	//æ·»åŠ åˆ°å…¨éƒ¨ç»„, ä½†æ˜¯ä¸è¿›è¡Œæ˜¾ç¤º
-	AllPanelGroup.Add(BackName, PanelWidget);
-}
-
-void UDDFrameWidget::DoEnterUIPanel(FName PanelName)
-{
-	//ä»å…¨éƒ¨ç»„è·å–å¯¹è±¡
-	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
-	//åŒºåˆ†ç±»å‹è¿›è¡Œæ˜¾ç¤º
-	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
-	{
-		//è·å–å·¥ä½œLayout
-		UCanvasPanel* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UCanvasPanel>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveCanvas.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveCanvas.Pop();
-				ActiveCanvas.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveCanvas.Push(WorkLayout);
-		}
-
-		//æ ¹æ®ç±»å‹æ‰§è¡Œæ˜¾ç¤º
-		switch (PanelWidget->UINature.PanelShowType)
-		{
-		case EPanelShowType::DoNothing:
-			EnterPanelDoNothing(WorkLayout, PanelWidget);
-			return;
-		case EPanelShowType::HideOther:
-			EnterPanelHideOther(WorkLayout, PanelWidget);
-			return;
-		case EPanelShowType::Reverse:
-			EnterPanelReverse(WorkLayout, PanelWidget);
-			return;
-		}
-	}
-	else
-	{
-		UOverlay* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UOverlay>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveOverlay.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveOverlay.Pop();
-				ActiveOverlay.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveOverlay.Push(WorkLayout);
-		}
-
-		//æ ¹æ®ç±»å‹æ‰§è¡Œæ˜¾ç¤º
-		switch (PanelWidget->UINature.PanelShowType)
-		{
-		case EPanelShowType::DoNothing:
-			EnterPanelDoNothing(WorkLayout, PanelWidget);
-			return;
-		case EPanelShowType::HideOther:
-			EnterPanelHideOther(WorkLayout, PanelWidget);
-			return;
-		case EPanelShowType::Reverse:
-			EnterPanelReverse(WorkLayout, PanelWidget);
-			return;
-		}
-	}
-}
-
-void UDDFrameWidget::EnterPanelDoNothing(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//æ·»åŠ Panelåˆ°Layout
-	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
-	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
-	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
-
-	//æ·»åŠ Panelæ˜¾ç¤ºç»„, æœ¬æ¡†æ¶å¼ºåˆ¶PanelNameå¿…é¡»å’ŒObjectNameä¸€è‡´
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-}
-
-void UDDFrameWidget::EnterPanelDoNothing(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//æ·»åŠ Panelåˆ°Layout
-	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
-	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
-	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
-	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
-
-	//æ·»åŠ Panelåˆ°æ˜¾ç¤ºç»„, æœ¬æ¡†æ¶å¼ºåˆ¶PanelNameå¿…é¡»å’ŒObjectNameä¸€è‡´
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-}
-
-void UDDFrameWidget::EnterPanelHideOther(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//å°†æ˜¾ç¤ºç»„çš„åŒä¸€å±‚çº§çš„å…¶ä»–å¯¹è±¡éƒ½éšè—, å¦‚æœæ˜¯Level_Allå°±å…¨éƒ¨éšè—, Level_Allä¼˜å…ˆçº§é«˜
-	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
-		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All)
-			It.Value()->PanelHidden();
-		else if (PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
-			It.Value()->PanelHidden();
-
-	//æ·»åŠ Panelåˆ°Layout
-	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
-	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
-	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
-
-	//æ·»åŠ åˆ°æ˜¾ç¤ºç»„å¹¶ä¸”æ˜¾ç¤º
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-}
-
-void UDDFrameWidget::EnterPanelHideOther(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//å°†æ˜¾ç¤ºç»„çš„åŒä¸€å±‚çº§çš„å…¶ä»–å¯¹è±¡éƒ½éšè—, å¦‚æœæ˜¯Level_Allå°±å…¨éƒ¨éšè—, Level_Allä¼˜å…ˆçº§é«˜
-	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
-		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All)
-			It.Value()->PanelHidden();
-		else if (PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
-			It.Value()->PanelHidden();
-
-	//æ·»åŠ Panelåˆ°Layout
-	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
-	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
-	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
-	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
-
-	//æ·»åŠ åˆ°æ˜¾ç¤ºç»„å¹¶ä¸”æ˜¾ç¤º
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-}
-
-void UDDFrameWidget::EnterPanelReverse(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//åˆ¤æ–­æ˜¯Popæ ˆå†…æ˜¯å¦æœ‰å¯¹è±¡, æœ‰çš„è¯å°±å°†æœ€åä¸€ä¸ªå†»ç»“
-	if (PopPanelStack.Num() > 0)
-	{
-		TArray<UDDPanelWidget*> PanelStack;
-		PopPanelStack.GenerateValueArray(PanelStack);
-		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
-	}
-
-	//æ¿€æ´»é®ç½©
-	ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
-
-	//æ·»åŠ Panelåˆ°Layout
-	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
-	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
-	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
-
-	//æ·»åŠ Panelåˆ°æ ˆå¹¶ä¸”æ˜¾ç¤º
-	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-
-}
-
-void UDDFrameWidget::EnterPanelReverse(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
-{
-	//åˆ¤æ–­æ˜¯Popæ ˆå†…æ˜¯å¦æœ‰å¯¹è±¡, æœ‰çš„è¯å°±å°†æœ€åä¸€ä¸ªå†»ç»“
-	if (PopPanelStack.Num() > 0)
-	{
-		TArray<UDDPanelWidget*> PanelStack;
-		PopPanelStack.GenerateValueArray(PanelStack);
-		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
-	}
-
-	//æ¿€æ´»é®ç½©
-	ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
-
-	//æ·»åŠ Panelåˆ°Layout
-	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
-	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
-	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
-	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
-
-	//æ·»åŠ Panelåˆ°æ ˆå¹¶ä¸”æ˜¾ç¤º
-	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelEnter();
-}
-
-void UDDFrameWidget::ShowPanelDoNothing(UDDPanelWidget* PanelWidget)
-{
-	//æ·»åŠ Panelåˆ°æ˜¾ç¤ºç»„
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelDisplay();
-}
-
-void UDDFrameWidget::ShowPanelHideOther(UDDPanelWidget* PanelWidget)
-{
-	//å°†æ˜¾ç¤ºç»„çš„åŒä¸€å±‚çº§çš„å…¶ä»–å¯¹è±¡éƒ½éšè—, å¦‚æœæ˜¯Level_Allå°±éšè—æ‰€æœ‰
-	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
-		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All)
-			It.Value()->PanelHidden();
-		else if (PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
-			It.Value()->PanelHidden();
-
-	//æ·»åŠ Panelåˆ°æ˜¾ç¤ºç»„
-	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelDisplay();
-}
-
-void UDDFrameWidget::ShowPanelReverse(UDDPanelWidget* PanelWidget)
-{
-	//åˆ¤æ–­æ˜¯Popæ ˆå†…æ˜¯å¦æœ‰å¯¹è±¡, æœ‰çš„è¯å°±å°†æœ€åä¸€ä¸ªå†»ç»“
-	if (PopPanelStack.Num() > 0)
-	{
-		TArray<UDDPanelWidget*> PanelStack;
-		PopPanelStack.GenerateValueArray(PanelStack);
-		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
-	}
-
-	//å¼¹çª—å¯¹è±¡å¿…é¡»ä»åŸæ¥çš„çˆ¶çº§ç§»é™¤, ç„¶åå†æ¬¡æ·»åŠ 
-	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
-	{
-		UCanvasPanel* PreWorkLayout = Cast<UCanvasPanel>(PanelWidget->GetParent());
-		UCanvasPanelSlot* PrePanelSlot = Cast<UCanvasPanelSlot>(PanelWidget->Slot);
-		FAnchors PreAnchors = PrePanelSlot->GetAnchors();
-		FMargin PreOffsets = PrePanelSlot->GetOffsets();
-
-		//å°†PanelWidgetä»çˆ¶ç±»ç§»é™¤
-		PanelWidget->RemoveFromParent();
-		//å¤„ç†è¿™ä¸ªçˆ¶ç±»çš„èµ„æº
-		if (PreWorkLayout->GetChildrenCount() == 0)
-		{
-			PreWorkLayout->RemoveFromParent();
-			ActiveCanvas.Remove(PreWorkLayout);
-			UnActiveCanvas.Push(PreWorkLayout);
-		}
-
-		//å¯»æ‰¾ä¸€ä¸ªèƒ½ç”¨çš„WorkLayout
-		UCanvasPanel* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UCanvasPanel>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveCanvas.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveCanvas.Pop();
-				ActiveCanvas.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveCanvas.Push(WorkLayout);
-		}
-
-		//æ¿€æ´»Maskåˆ°è·å–åˆ°çš„WorkLayout
-		ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
-
-		//æŠŠPanelWidgetæ·»åŠ åˆ°WorkLayout
-		UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
-		PanelSlot->SetAnchors(PreAnchors);
-		PanelSlot->SetOffsets(PreOffsets);
-	}
-	else
-	{
-		UOverlay* PreWorkLayout = Cast<UOverlay>(PanelWidget->GetParent());
-		UOverlaySlot* PrePanelSlot = Cast<UOverlaySlot>(PanelWidget->Slot);
-		FMargin PrePadding = PrePanelSlot->Padding;
-		TEnumAsByte<EHorizontalAlignment> PreHAlign = PrePanelSlot->HorizontalAlignment;
-		TEnumAsByte<EVerticalAlignment> PreVAlign = PrePanelSlot->VerticalAlignment;
-
-		//å°†PanelWidgetä»çˆ¶ç±»ç§»é™¤
-		PanelWidget->RemoveFromParent();
-		//å¤„ç†è¿™ä¸ªçˆ¶ç±»çš„èµ„æº
-		if (PreWorkLayout->GetChildrenCount() == 0)
-		{
-			PreWorkLayout->RemoveFromParent();
-			ActiveOverlay.Remove(PreWorkLayout);
-			UnActiveOverlay.Push(PreWorkLayout);
-		}
-
-		//å¯»æ‰¾ä¸€ä¸ªèƒ½ç”¨çš„WorkLayout
-		UOverlay* WorkLayout = NULL;
-		if (RootCanvas->GetChildrenCount() > 0)
-		{
-			WorkLayout = Cast<UOverlay>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
-			if (!WorkLayout)
-			{
-				if (UnActiveOverlay.Num() == 0)
-				{
-					WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-					WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-					UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-					FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-					FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-				}
-				else
-					WorkLayout = UnActiveOverlay.Pop();
-				ActiveOverlay.Push(WorkLayout);
-			}
-		}
-		else
-		{
-			WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
-			WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
-			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-			ActiveOverlay.Push(WorkLayout);
-		}
-
-		//æ¿€æ´»Maskåˆ°è·å–åˆ°çš„WorkLayout
-		ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
-
-		//æŠŠPanelWidgetæ·»åŠ åˆ°WorkLayout
-		UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
-		PanelSlot->SetPadding(PrePadding);
-		PanelSlot->SetHorizontalAlignment(PreHAlign);
-		PanelSlot->SetVerticalAlignment(PreVAlign);
-	}
-
-	//æ·»åŠ Panelåˆ°æ ˆå¹¶ä¸”æ˜¾ç¤º
-	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
-	PanelWidget->PanelDisplay();
-}
-
-
-void UDDFrameWidget::HidePanelDoNothing(UDDPanelWidget* PanelWidget)
-{
-	//ä»æ˜¾ç¤ºç»„ç§»é™¤
-	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
-	//è¿è¡Œéšè—å‡½æ•°
-	PanelWidget->PanelHidden();
-}
-
-void UDDFrameWidget::HidePanelHideOther(UDDPanelWidget* PanelWidget)
-{
-	//ä»æ˜¾ç¤ºç»„ç§»é™¤
-	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
-
-	//æ˜¾ç¤ºåŒä¸€å±‚çº§ä¸‹çš„å…¶ä»–Panel, å¦‚æœæ˜¯Level_Allå°±å…¨éƒ¨æ˜¾ç¤º
-	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
-		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All)
-			It.Value()->PanelDisplay();
-		else if (PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
-			It.Value()->PanelDisplay();
-
-	//è¿è¡Œéšè—å‡½æ•°
-	PanelWidget->PanelHidden();
-}
-
-void UDDFrameWidget::HidePanelReverse(UDDPanelWidget* PanelWidget)
-{
-	TArray<UDDPanelWidget*> PopStack;
-	PopPanelStack.GenerateValueArray(PopStack);
-	//å¦‚æœæœ€åä¸€ä¸ªä¸æ˜¯è¿™ä¸ªPanelWidget, æäº¤é”™è¯¯
-	if (PopStack[PopStack.Num() - 1] != PanelWidget)
-	{
-		DDH::Debug() << PanelWidget->GetObjectName() << " Is Not Last Panel In PopPanelStack" << DDH::Endl();
-		return;
-	}
-
-	//ä»PopPanelStackç§»é™¤
-	PopPanelStack.Remove(PanelWidget->GetObjectName());
-	//æ‰§è¡Œéšè—
-	PanelWidget->PanelHidden();
-
-	//è°ƒæ•´æ ˆ
-	PopStack.Pop();
-	if (PopStack.Num() > 0)
-	{
-		UDDPanelWidget* PrePanelWidget = PopStack[PopStack.Num() - 1];
-		//è½¬ç§»MaskPanelåˆ°PrePanelWidgetçš„ä¸Šä¸€çº§
-		TransferMask(PrePanelWidget);
-		PrePanelWidget->PanelResume();
-	}
-	else
-		RemoveMaskPanel();
-}
-
-void UDDFrameWidget::ExitPanelDoNothing(UDDPanelWidget* PanelWidget)
-{
-	//ä»æ˜¾ç¤ºç»„å’ŒAllç»„ä»¥åŠåŠ è½½ç»„ç§»é™¤
-	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
-	AllPanelGroup.Remove(PanelWidget->GetObjectName());
-	LoadedPanelName.Remove(PanelWidget->GetObjectName());
-	//æ‰§è¡Œé”€æ¯
-	PanelWidget->PanelExit();
-}
-
-void UDDFrameWidget::ExitPanelHideOther(UDDPanelWidget* PanelWidget)
-{
-	//ä»æ˜¾ç¤ºç»„å’ŒAllç»„ä»¥åŠåŠ è½½ç»„ç§»é™¤
-	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
-	AllPanelGroup.Remove(PanelWidget->GetObjectName());
-	LoadedPanelName.Remove(PanelWidget->GetObjectName());
-
-	//é‡æ–°æ˜¾ç¤ºåŒä¸€å±‚çº§çš„å…¶ä»–Panel, å¦‚æœæ˜¯Level_Allå°±å…¨éƒ¨æ˜¾ç¤º
-	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
-		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All)
-			It.Value()->PanelDisplay();
-		else if (PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
-			It.Value()->PanelDisplay();
-
-	//æ˜¾ç¤ºå®Œå…¶ä»–ç»„ä»¶åå†å¯¹PanelWidgetæ‰§è¡Œé”€æ¯
-	PanelWidget->PanelExit();
-}
-
-void UDDFrameWidget::ExitPanelReverse(UDDPanelWidget* PanelWidget)
-{
-	TArray<UDDPanelWidget*> PopStack;
-	PopPanelStack.GenerateValueArray(PopStack);
-	//å¦‚æœæœ€åä¸€ä¸ªä¸æ˜¯è¿™ä¸ªPanelWidget, æäº¤é”™è¯¯
-	if (PopStack[PopStack.Num() - 1] != PanelWidget)
-	{
-		DDH::Debug() << PanelWidget->GetObjectName() << " Is Not Last Panel In PopPanelStack" << DDH::Endl();
-		return;
-	}
-
-	AllPanelGroup.Remove(PanelWidget->GetObjectName());
-	PopPanelStack.Remove(PanelWidget->GetObjectName());
-	LoadedPanelName.Remove(PanelWidget->GetObjectName());
-	PopStack.Pop();
-	//æ‰§è¡Œé”€æ¯
-	PanelWidget->PanelExit();
-
-	//å¤„ç†é®ç½©ä¸æ ˆ
-	if (PopStack.Num() > 0)
-	{
-		UDDPanelWidget* PrePanelWidget = PopStack[PopStack.Num() - 1];
-		//è½¬ç§»MaskPanelåˆ°PrePanelWidgetçš„ä¸Šä¸€çº§
-		TransferMask(PrePanelWidget);
-		PrePanelWidget->PanelResume();
-	}
-	else
-		RemoveMaskPanel();
-}
-
-void UDDFrameWidget::ActiveMask(UCanvasPanel* WorkLayout, EPanelLucenyType LucenyType)
-{
-	//ç§»å‡ºé®ç½©
-	RemoveMaskPanel(WorkLayout);
-
-	//æ·»åŠ Maskåˆ°Layout
-	UCanvasPanelSlot* MaskSlot = WorkLayout->AddChildToCanvas(MaskPanel);
-	MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-	MaskSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-
-	//æ ¹æ®LucenyTypeè®¾ç½®Maskçš„å±æ€§
-	switch (LucenyType)
-	{
-	case EPanelLucenyType::Lucency:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(NormalLucency);
-		break;
-	case EPanelLucenyType::Translucence:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(TranslucenceLucency);
-		break;
-	case EPanelLucenyType::ImPenetrable:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
-		break;
-	case EPanelLucenyType::Pentrate:
-		MaskPanel->SetVisibility(ESlateVisibility::Hidden);
-		MaskPanel->SetColorAndOpacity(NormalLucency);
-		break;
-	}
-}
-
-void UDDFrameWidget::ActiveMask(UOverlay* WorkLayout, EPanelLucenyType LucenyType)
-{
-	//ç§»å‡ºé®ç½©
-	RemoveMaskPanel(WorkLayout);
-
-	//æ·»åŠ Maskåˆ°Layout
-	UOverlaySlot* MaskSlot = WorkLayout->AddChildToOverlay(MaskPanel);
-	MaskSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
-	MaskSlot->SetHorizontalAlignment(HAlign_Fill);
-	MaskSlot->SetVerticalAlignment(VAlign_Fill);
-
-	//æ ¹æ®LucenyTypeè®¾ç½®Maskçš„å±æ€§
-	switch (LucenyType)
-	{
-	case EPanelLucenyType::Lucency:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(NormalLucency);
-		break;
-	case EPanelLucenyType::Translucence:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(TranslucenceLucency);
-		break;
-	case EPanelLucenyType::ImPenetrable:
-		MaskPanel->SetVisibility(ESlateVisibility::Visible);
-		MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
-		break;
-	case EPanelLucenyType::Pentrate:
-		MaskPanel->SetVisibility(ESlateVisibility::Hidden);
-		MaskPanel->SetColorAndOpacity(NormalLucency);
-		break;
-	}
-}
-
-
-void UDDFrameWidget::TransferMask(UDDPanelWidget* PanelWidget)
-{
-	//ä¸´æ—¶ä¿å­˜PanelWidgetä»¥åŠä¸Šå±‚çš„Panel
-	TArray<UDDPanelWidget*> AbovePanelStack;
-	//ä¸´æ—¶ä¿å­˜PanelWidgetä»¥åŠä¸Šå±‚çš„Panelçš„æ•°æ®
-	TArray<FUINature> AboveNatureStack;
-
-	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
-	{
-		UCanvasPanel* WorkLayout = Cast<UCanvasPanel>(PanelWidget->GetParent());
-
-		int32 StartOrder = WorkLayout->GetChildIndex(PanelWidget);
-		for (int i = StartOrder; i < WorkLayout->GetChildrenCount(); ++i)
-		{
-			UDDPanelWidget* TempPanelWidget = Cast<UDDPanelWidget>(WorkLayout->GetChildAt(i));
-			//å¦‚æœä¸æ˜¯UDDPanelWidgetç±»å‹å°±è·³åˆ°ä¸‹ä¸€ä¸ªå¾ªç¯
-			if (!TempPanelWidget) continue;
-			AbovePanelStack.Push(TempPanelWidget);
-			FUINature TempUINature;
-			UCanvasPanelSlot* TempPanelSlot = Cast<UCanvasPanelSlot>(TempPanelWidget->Slot);
-			TempUINature.Anchors = TempPanelSlot->GetAnchors();
-			TempUINature.Offsets = TempPanelSlot->GetOffsets();
-			AboveNatureStack.Push(TempUINature);
-		}
-
-		//å¾ªç¯ç§»é™¤Panel
-		for (int i = AbovePanelStack.Num() - 1; i >= 0; --i)
-			AbovePanelStack[i]->RemoveFromParent();
-
-		//æ·»åŠ é®ç½©
-		UCanvasPanelSlot* MaskSlot = WorkLayout->AddChildToCanvas(MaskPanel);
-		MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-		MaskSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
-
-		//è®¾ç½®é€æ˜åº¦
-		switch (PanelWidget->UINature.PanelLucenyType)
-		{
-		case EPanelLucenyType::Lucency:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(NormalLucency);
-			break;
-		case EPanelLucenyType::Translucence:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(TranslucenceLucency);
-			break;
-		case EPanelLucenyType::ImPenetrable:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
-			break;
-		case EPanelLucenyType::Pentrate:
-			MaskPanel->SetVisibility(ESlateVisibility::Hidden);
-			MaskPanel->SetColorAndOpacity(NormalLucency);
-			break;
-		}
-
-		//å°†Panelæ ˆå¡«å……å›WorkLayout
-		for (int i = 0; i < AbovePanelStack.Num(); ++i)
-		{
-			UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(AbovePanelStack[i]);
-			PanelSlot->SetAnchors(AboveNatureStack[i].Anchors);
-			PanelSlot->SetOffsets(AboveNatureStack[i].Offsets);
-		}
-	}
-	else if (PanelWidget->UINature.LayoutType == ELayoutType::Overlay)
-	{
-		UOverlay* WorkLayout = Cast<UOverlay>(PanelWidget->GetParent());
-
-		int32 StartOrder = WorkLayout->GetChildIndex(PanelWidget);
-		for (int i = StartOrder; i < WorkLayout->GetChildrenCount(); ++i)
-		{
-			UDDPanelWidget* TempPanelWidget = Cast<UDDPanelWidget>(WorkLayout->GetChildAt(i));
-			//å¦‚æœä¸æ˜¯UDDPanelWidgetç±»å‹å°±è·³åˆ°ä¸‹ä¸€ä¸ªå¾ªç¯
-			if (!TempPanelWidget) continue;
-			AbovePanelStack.Push(TempPanelWidget);
-			FUINature TempUINature;
-			UOverlaySlot* TempPanelSlot = Cast<UOverlaySlot>(TempPanelWidget->Slot);
-			TempUINature.Offsets = TempPanelSlot->Padding;
-			TempUINature.HAlign = TempPanelSlot->HorizontalAlignment;
-			TempUINature.VAlign = TempPanelSlot->VerticalAlignment;
-			AboveNatureStack.Push(TempUINature);
-		}
-
-		//å¾ªç¯ç§»é™¤Panel
-		for (int i = AbovePanelStack.Num() - 1; i >= 0; --i)
-			AbovePanelStack[i]->RemoveFromParent();
-
-		//å°†Maskç§»å…¥WorkLayout
-		UOverlaySlot* MaskSlot = WorkLayout->AddChildToOverlay(MaskPanel);
-		MaskSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
-		MaskSlot->SetHorizontalAlignment(HAlign_Fill);
-		MaskSlot->SetVerticalAlignment(VAlign_Fill);
-
-		//è®¾ç½®é€æ˜åº¦
-		switch (PanelWidget->UINature.PanelLucenyType)
-		{
-		case EPanelLucenyType::Lucency:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(NormalLucency);
-			break;
-		case EPanelLucenyType::Translucence:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(TranslucenceLucency);
-			break;
-		case EPanelLucenyType::ImPenetrable:
-			MaskPanel->SetVisibility(ESlateVisibility::Visible);
-			MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
-			break;
-		case EPanelLucenyType::Pentrate:
-			MaskPanel->SetVisibility(ESlateVisibility::Hidden);
-			MaskPanel->SetColorAndOpacity(NormalLucency);
-			break;
-		}
-
-		//å°†Panelæ ˆå¡«å……å›WorkLayout
-		for (int i = 0; i < AbovePanelStack.Num(); ++i)
-		{
-			UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(AbovePanelStack[i]);
-			PanelSlot->SetPadding(AboveNatureStack[i].Offsets);
-			PanelSlot->SetHorizontalAlignment(AboveNatureStack[i].HAlign);
-			PanelSlot->SetVerticalAlignment(AboveNatureStack[i].VAlign);
-		}
-	}
 }
 
 void UDDFrameWidget::ExitCallBack(ELayoutType LayoutType, UPanelWidget* InLayout)
@@ -943,14 +144,766 @@ void UDDFrameWidget::ExitCallBack(ELayoutType LayoutType, UPanelWidget* InLayout
 	}
 }
 
-void UDDFrameWidget::RemoveMaskPanel(UPanelWidget* WorkLayout)
+void UDDFrameWidget::WaitShowPanel()
 {
-	//å¤„ç†é®ç½©çš„çˆ¶çº§
+	TArray<FName> CompleteName;
+	for (int i = 0; i < WaitShowPanelName.Num(); ++i)
+	{
+		if (AllPanelGroup.Contains(WaitShowPanelName[i]))
+		{
+			//Ö´ĞĞ½øÈë½çÃæ·½·¨
+			DoEnterUIPanel(WaitShowPanelName[i]);
+			//Ìí¼Óµ½Íê³É×é
+			CompleteName.Push(WaitShowPanelName[i]);
+		}
+	}
+	//ÒÆ³ıÍê³ÉµÄUI
+	for (int i = 0; i < CompleteName.Num(); ++i)
+		WaitShowPanelName.Remove(CompleteName[i]);
+	//Èç¹ûÃ»ÓĞµÈ´ıÏÔÊ¾µÄUIÁË, Í£Ö¹¸ÃÑ­»·º¯Êı
+	if (WaitShowPanelName.Num() == 0)
+		StopInvoke(WaitShowTaskName);
+}
+
+void UDDFrameWidget::DoEnterUIPanel(FName PanelName)
+{
+	//»ñÈ¡Ãæ°åÊµÀı
+	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
+	//Çø·Ö²¼¾ÖÀàĞÍ½øĞĞÌí¼Óµ½½çÃæ
+	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
+	{
+		//»ñÈ¡²¼¾Ö¿Ø¼ş, ¸¸¿Ø¼ş
+		UCanvasPanel* WorkLayout = NULL;
+
+		//ÅĞ¶Ï×îµ×²ãµÄ²¼¾Ö¿Ø¼şÊÇ·ñÊÇCanvas
+		if (RootCanvas->GetChildrenCount() > 0)
+			WorkLayout = Cast<UCanvasPanel>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
+
+		if (!WorkLayout)
+		{
+			if (UnActiveCanvas.Num() == 0)
+			{
+				WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
+				WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
+			else
+				WorkLayout = UnActiveCanvas.Pop();
+			//Ìí¼Ó²¼¾Ö¿Ø¼şµ½½çÃæ×î¶¥²ã
+			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
+			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+			//Ìí¼Óµ½¼¤»î»­²¼×é
+			ActiveCanvas.Push(WorkLayout);
+		}
+
+		switch (PanelWidget->UINature.PanelShowType)
+		{
+		case EPanelShowType::DoNothing:
+			EnterPanelDoNothing(WorkLayout, PanelWidget);
+			break;
+		case EPanelShowType::HideOther:
+			EnterPanelHideOther(WorkLayout, PanelWidget);
+			break;
+		case EPanelShowType::Reverse:
+			EnterPanelReverse(WorkLayout, PanelWidget);
+			break;
+		}
+	}
+	else
+	{
+		UOverlay* WorkLayout = NULL;
+
+		//Èç¹û´æÔÚ²¼¾Ö¿Ø¼ş, ÊÔÍ¼°Ñ×îºóÒ»¸ö²¼¾Ö¿Ø¼ş×ª»»³ÉOverlay
+		if (RootCanvas->GetChildrenCount() > 0)
+			WorkLayout = Cast<UOverlay>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
+
+		if (!WorkLayout)
+		{
+			if (UnActiveOverlay.Num() == 0)
+			{
+				WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
+				WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
+			else
+				WorkLayout = UnActiveOverlay.Pop();
+			//Ìí¼Ó²¼¾Ö¿Ø¼şµ½½çÃæ×î¶¥²ã
+			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
+			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+			//Ìí¼Óµ½¼¤»î»­²¼×é
+			ActiveOverlay.Push(WorkLayout);
+		}
+
+		switch (PanelWidget->UINature.PanelShowType)
+		{
+		case EPanelShowType::DoNothing:
+			EnterPanelDoNothing(WorkLayout, PanelWidget);
+			break;
+		case EPanelShowType::HideOther:
+			EnterPanelHideOther(WorkLayout, PanelWidget);
+			break;
+		case EPanelShowType::Reverse:
+			EnterPanelReverse(WorkLayout, PanelWidget);
+			break;
+		}
+	}
+}
+
+void UDDFrameWidget::EnterPanelDoNothing(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//Ìí¼ÓUIÃæ°åµ½¸¸¿Ø¼ş
+	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
+	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
+	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
+
+	//°ÑUIÃæ°åÌí¼Óµ½ÏÔÊ¾×é, UIÃæ°åµÄGetObjectName(), PanelName, ×ÊÔ´ÏµÍ³ÏÂµÄWealthName±ØĞëÒ»ÖÂ
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	//µ÷ÓÃUIÃæ°åµÄ½øÈë½çÃæÉúÃüÖÜÆÚ
+	PanelWidget->PanelEnter();
+}
+
+void UDDFrameWidget::EnterPanelDoNothing(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//Ìí¼ÓUIÃæ°åµ½Overlay²¼¾Ö
+	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
+	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
+	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
+	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
+
+	//°ÑUIÃæ°åÌí¼Óµ½ÏÔÊ¾×é, UIÃæ°åµÄGetObjectName(), PanelName, ×ÊÔ´ÏµÍ³ÏÂµÄWealthName±ØĞëÒ»ÖÂ
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	//µ÷ÓÃUIÃæ°åµÄ½øÈë½çÃæÉúÃüÖÜÆÚ
+	PanelWidget->PanelEnter();
+}
+
+void UDDFrameWidget::EnterPanelHideOther(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//½«ÏÔÊ¾×éµÄÍ¬Ò»²ã¼¶µÄÆäËû¶ÔÏó¶¼Òş²Ø, Èç¹ûÊÇLevel_All¾ÍÈ«²¿Òş²Ø, Level_AllÓÅÏÈ¼¶¸ß
+	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
+		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All || PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
+			It.Value()->PanelHidden();
+
+	//Ìí¼ÓUIÃæ°åµ½Layout
+	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
+	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
+	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
+
+	//Ìí¼ÓUIÃæ°åÌí¼Óµ½ÏÔÊ¾×é
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	//µ÷ÓÃ½øÈë½çÃæÉúÃüÖÜÆÚº¯Êı
+	PanelWidget->PanelEnter();
+}
+
+void UDDFrameWidget::EnterPanelHideOther(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//½«ÏÔÊ¾×éµÄÍ¬Ò»²ã¼¶µÄÆäËû¶ÔÏó¶¼Òş²Ø, Èç¹ûÊÇLevel_All¾ÍÈ«²¿Òş²Ø, Level_AllÓÅÏÈ¼¶¸ß
+	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
+		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All || PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
+			It.Value()->PanelHidden();
+
+	//Ìí¼Óµ½UOverlay
+	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
+	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
+	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
+	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
+
+	//Ìí¼ÓUIÃæ°åÌí¼Óµ½ÏÔÊ¾×é
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	//µ÷ÓÃ½øÈë½çÃæÉúÃüÖÜÆÚº¯Êı
+	PanelWidget->PanelEnter();
+}
+
+void UDDFrameWidget::EnterPanelReverse(UCanvasPanel* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//°ÑÕ»ÄÚ×îºóÒ»¸ö½Úµã¶³½á
+	if (PopPanelStack.Num() > 0)
+	{
+		TArray<UDDPanelWidget*> PanelStack;
+		PopPanelStack.GenerateValueArray(PanelStack);
+		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
+	}
+
+	//¼¤»îÕÚÕÖ
+	ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
+
+	//Ìí¼Óµ¯´°µ½½çÃæ
+	UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
+	PanelSlot->SetAnchors(PanelWidget->UINature.Anchors);
+	PanelSlot->SetOffsets(PanelWidget->UINature.Offsets);
+
+	//Ìí¼Óµ¯´°µ½Õ», ²¢ÇÒÔËĞĞ½øÈëÉúÃüÖÜÆÚº¯Êı
+	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
+	PanelWidget->PanelEnter();
+}
+
+void UDDFrameWidget::EnterPanelReverse(UOverlay* WorkLayout, UDDPanelWidget* PanelWidget)
+{
+	//°ÑÕ»ÄÚ×îºóÒ»¸ö½Úµã¶³½á
+	if (PopPanelStack.Num() > 0)
+	{
+		TArray<UDDPanelWidget*> PanelStack;
+		PopPanelStack.GenerateValueArray(PanelStack);
+		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
+	}
+
+	//¼¤»îÕÚÕÖ
+	ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
+
+	//Ìí¼Óµ¯´°µ½½çÃæ
+	UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
+	PanelSlot->SetPadding(PanelWidget->UINature.Offsets);
+	PanelSlot->SetHorizontalAlignment(PanelWidget->UINature.HAlign);
+	PanelSlot->SetVerticalAlignment(PanelWidget->UINature.VAlign);
+
+	//Ìí¼Óµ¯´°µ½Õ», ²¢ÇÒÔËĞĞ½øÈëÉúÃüÖÜÆÚº¯Êı
+	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
+	PanelWidget->PanelEnter();
+}
+
+
+
+void UDDFrameWidget::DoShowUIPanel(FName PanelName)
+{
+	//´ÓÈ«²¿×é»ñÈ¡¶ÔÏó
+	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
+
+	//¸ù¾İUIÃæ°åÀàĞÍµ÷ÓÃ²»Í¬µÄÏÔÊ¾·½·¨
+	switch (PanelWidget->UINature.PanelShowType)
+	{
+	case EPanelShowType::DoNothing:
+		ShowPanelDoNothing(PanelWidget);
+		break;
+	case EPanelShowType::HideOther:
+		ShowPanelHideOther(PanelWidget);
+		break;
+	case EPanelShowType::Reverse:
+		ShowPanelReverse(PanelWidget);
+		break;
+	}
+}
+
+void UDDFrameWidget::ShowPanelDoNothing(UDDPanelWidget* PanelWidget)
+{
+	//Ìí¼ÓUIÃæ°åµ½ÏÔÊ¾×é
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	PanelWidget->PanelDisplay();
+}
+
+void UDDFrameWidget::ShowPanelHideOther(UDDPanelWidget* PanelWidget)
+{
+	//½«ÏÔÊ¾×éµÄÍ¬Ò»²ã¼¶µÄÆäËû¶ÔÏó¶¼Òş²Ø, Èç¹ûÊÇLevel_All¾ÍÈ«²¿Òş²Ø, Level_AllÓÅÏÈ¼¶¸ß
+	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
+		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All || PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
+			It.Value()->PanelHidden();
+
+	//Ìí¼Óµ½ÏÔÊ¾×é
+	ShowPanelGroup.Add(PanelWidget->GetObjectName(), PanelWidget);
+	PanelWidget->PanelDisplay();
+}
+
+void UDDFrameWidget::ShowPanelReverse(UDDPanelWidget* PanelWidget)
+{
+	//Èç¹ûµ¯´°Õ»ÀïÓĞÔªËØ, ¶³½á×î¶¥²ãµÄµ¯´°
+	if (PopPanelStack.Num() > 0)
+	{
+		TArray<UDDPanelWidget*> PanelStack;
+		PopPanelStack.GenerateValueArray(PanelStack);
+		PanelStack[PanelStack.Num() - 1]->PanelFreeze();
+	}
+
+	//µ¯´°¶ÔÏó±ØĞë´Óµ±Ç°¸¸¿Ø¼şÒÆ³ı, ÔÙÖØĞÂÌí¼Óµ½×î¶¥²ãµÄ½çÃæ
+	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
+	{
+		UCanvasPanel* PreWorkLayout = Cast<UCanvasPanel>(PanelWidget->GetParent());
+		UCanvasPanelSlot* PrePanelSlot = Cast<UCanvasPanelSlot>(PanelWidget->Slot);
+		FAnchors PreAnchors = PrePanelSlot->GetAnchors();
+		FMargin PreOffsets = PrePanelSlot->GetOffsets();
+
+		//½«PanelWidget´Óµ±Ç°¸¸¿Ø¼şÒÆ³ı
+		PanelWidget->RemoveFromParent();
+		//´¦Àí¸¸¿Ø¼ş
+		if (PreWorkLayout->GetChildrenCount() == 0)
+		{
+			PreWorkLayout->RemoveFromParent();
+			ActiveCanvas.Remove(PreWorkLayout);
+			UnActiveCanvas.Push(PreWorkLayout);
+		}
+
+		//Ñ°ÕÒ×î¶¥²ãµÄWorkLayout
+		UCanvasPanel* WorkLayout = NULL;
+
+		//ÅĞ¶Ï×îµ×²ãµÄ²¼¾Ö¿Ø¼şÊÇ·ñÊÇCanvas
+		if (RootCanvas->GetChildrenCount() > 0)
+			WorkLayout = Cast<UCanvasPanel>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
+
+		if (!WorkLayout)
+		{
+			if (UnActiveCanvas.Num() == 0)
+			{
+				WorkLayout = WidgetTree->ConstructWidget<UCanvasPanel>(UCanvasPanel::StaticClass());
+				WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
+			else
+				WorkLayout = UnActiveCanvas.Pop();
+			//Ìí¼Ó²¼¾Ö¿Ø¼şµ½½çÃæ×î¶¥²ã
+			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
+			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+			//Ìí¼Óµ½¼¤»î»­²¼×é
+			ActiveCanvas.Push(WorkLayout);
+		}
+
+		//¼¤»îÕÚÕÖµ½×î¶¥²ãµ¯´°
+		ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
+
+		//°Ñµ¯´°Ìí¼Óµ½»ñÈ¡µÄ×î¶¥²ãµÄ¸¸¿Ø¼ş
+		UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(PanelWidget);
+		PanelSlot->SetAnchors(PreAnchors);
+		PanelSlot->SetOffsets(PreOffsets);
+	}
+	else
+	{
+		UOverlay* PreWorkLayout = Cast<UOverlay>(PanelWidget->GetParent());
+		UOverlaySlot* PrePanelSlot = Cast<UOverlaySlot>(PanelWidget->Slot);
+		FMargin PrePadding = PrePanelSlot->Padding;
+		TEnumAsByte<EHorizontalAlignment> PreHAlign = PrePanelSlot->HorizontalAlignment;
+		TEnumAsByte<EVerticalAlignment> PreVAlign = PrePanelSlot->VerticalAlignment;
+
+		//½«PanelWidget´Óµ±Ç°¸¸¿Ø¼şÒÆ³ı
+		PanelWidget->RemoveFromParent();
+		//´¦Àí¸¸¿Ø¼ş
+		if (PreWorkLayout->GetChildrenCount() == 0)
+		{
+			PreWorkLayout->RemoveFromParent();
+			ActiveOverlay.Remove(PreWorkLayout);
+			UnActiveOverlay.Push(PreWorkLayout);
+		}
+
+		UOverlay* WorkLayout = NULL;
+
+		//Èç¹û´æÔÚ²¼¾Ö¿Ø¼ş, ÊÔÍ¼°Ñ×îºóÒ»¸ö²¼¾Ö¿Ø¼ş×ª»»³ÉOverlay
+		if (RootCanvas->GetChildrenCount() > 0)
+			WorkLayout = Cast<UOverlay>(RootCanvas->GetChildAt(RootCanvas->GetChildrenCount() - 1));
+
+		if (!WorkLayout)
+		{
+			if (UnActiveOverlay.Num() == 0)
+			{
+				WorkLayout = WidgetTree->ConstructWidget<UOverlay>(UOverlay::StaticClass());
+				WorkLayout->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			}
+			else
+				WorkLayout = UnActiveOverlay.Pop();
+			//Ìí¼Ó²¼¾Ö¿Ø¼şµ½½çÃæ×î¶¥²ã
+			UCanvasPanelSlot* FrameCanvasSlot = RootCanvas->AddChildToCanvas(WorkLayout);
+			FrameCanvasSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+			FrameCanvasSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+			//Ìí¼Óµ½¼¤»î»­²¼×é
+			ActiveOverlay.Push(WorkLayout);
+		}
+
+		//¼¤»îÕÚÕÖµ½×î¶¥²ãµ¯´°
+		ActiveMask(WorkLayout, PanelWidget->UINature.PanelLucenyType);
+
+		//Ìí¼Óµ¯´°µ½»ñÈ¡µ½µÄ×î¶¥²ãµÄ²¼¾Ö¿Ø¼ş
+		UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(PanelWidget);
+		PanelSlot->SetPadding(PrePadding);
+		PanelSlot->SetHorizontalAlignment(PreHAlign);
+		PanelSlot->SetVerticalAlignment(PreVAlign);
+	}
+
+	//Ìí¼Óµ¯´°µ½Õ»
+	PopPanelStack.Add(PanelWidget->GetObjectName(), PanelWidget);
+	//ÏÔÊ¾µ¯´°
+	PanelWidget->PanelDisplay();
+}
+
+
+void UDDFrameWidget::HideUIPanel(FName PanelName)
+{
+	//ÅĞ¶ÏUIÃæ°åÊÇ·ñÔÚÏÔÊ¾×é»òÕßµ¯´°Õ»
+	if (!ShowPanelGroup.Contains(PanelName) && !PopPanelStack.Contains(PanelName))
+		return;
+
+	//»ñÈ¡UIÃæ°å
+	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
+
+	//¸ù¾İUIÃæ°åÀàĞÍµ÷ÓÃ²»Í¬µÄÒş²Ø·½·¨
+	switch (PanelWidget->UINature.PanelShowType)
+	{
+	case EPanelShowType::DoNothing:
+		HidePanelDoNothing(PanelWidget);
+		break;
+	case EPanelShowType::HideOther:
+		HidePanelHideOther(PanelWidget);
+		break;
+	case EPanelShowType::Reverse:
+		HidePanelReverse(PanelWidget);
+		break;
+	}
+}
+
+
+void UDDFrameWidget::HidePanelDoNothing(UDDPanelWidget* PanelWidget)
+{
+	//´ÓÏÔÊ¾×éÒÆ³ı
+	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
+	//ÔËĞĞÒş²ØÉúÃüÖÜÆÚ
+	PanelWidget->PanelHidden();
+}
+
+void UDDFrameWidget::HidePanelHideOther(UDDPanelWidget* PanelWidget)
+{
+	//´ÓÏÔÊ¾×éÒÆ³ı
+	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
+
+	//ÏÔÊ¾Í¬Ò»²ã¼¶ÏÂµÄÆäËûUIÃæ°å, Èç¹û¸ÃÃæ°åÊÇLevel_All²ã¼¶, ÏÔÊ¾ËùÓĞÏÔÊ¾×éµÄÃæ°å
+	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
+		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All || PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
+			It.Value()->PanelDisplay();
+
+	//ÔËĞĞÒş²ØÉúÃüÖÜÆÚ
+	PanelWidget->PanelHidden();
+}
+
+void UDDFrameWidget::HidePanelReverse(UDDPanelWidget* PanelWidget)
+{
+	//»ñÈ¡µ¯´°Õ»µ½Êı×é
+	TArray<UDDPanelWidget*> PopStack;
+	PopPanelStack.GenerateValueArray(PopStack);
+
+	//Èç¹û²»ÊÇ×îÉÏ²ãµÄµ¯´°, Ö±½Ó·µ»Ø
+	if (PopStack[PopStack.Num() - 1] != PanelWidget)
+	{
+		DDH::Debug() << PanelWidget->GetObjectName() << " Is Not Last Panel In PopPanelStack" << DDH::Endl();
+		return;
+	}
+
+	//´ÓÕ»ÖĞÒÆ³ı
+	PopPanelStack.Remove(PanelWidget->GetObjectName());
+	//Ö´ĞĞÒş²Øº¯Êı
+	PanelWidget->PanelHidden();
+
+	//µ÷Õûµ¯´°Õ»
+	PopStack.Pop();
+	if (PopStack.Num() > 0)
+	{
+		UDDPanelWidget* PrePanelWidget = PopStack[PopStack.Num() - 1];
+		//×ªÒÆÕÚÕÖµ½ĞÂµÄ×î¶¥²ãµÄµ¯´°µÄÏÂÒ»²ã
+		TransferMask(PrePanelWidget);
+		//»Ø¸´±»¶³½áµÄ×î¶¥²ãµÄµ¯´°
+		PrePanelWidget->PanelResume();
+	}
+	else
+		RemoveMaskPanel();
+}
+
+void UDDFrameWidget::ExitUIPanel(FName PanelName)
+{
+	//Èç¹ûÕıÔÚÔ¤¼ÓÔØµ«ÊÇÃ»ÓĞ¼ÓÔØÍê³É,  ÕâÖÖÇé¿ö³öÏÖÔÚÖ´ĞĞµÚÒ»´ÎÏÔÊ¾»òÕßÌáÇ°¼ÓÔØºó¾ÍÂíÉÏÖ´ĞĞÏú»Ù½çÃæ,  ºóÆÚ»á½øĞĞÍêÉÆ
+	if (!AllPanelGroup.Contains(PanelName) && LoadedPanelName.Contains(PanelName))
+	{
+		DDH::Debug() << "Do Not Exit UI Panel when Loading Panel" << DDH::Endl();
+		return;
+	}
+
+	//Èç¹ûÕâ¸öUIÃæ°åÃ»ÓĞ¼ÓÔØµ½È«²¿×é
+	if (!AllPanelGroup.Contains(PanelName))
+		return;
+
+	//»ñÈ¡UIÃæ°å
+	UDDPanelWidget* PanelWidget = *AllPanelGroup.Find(PanelName);
+	//ÊÇ·ñÔÚÏÔÊ¾×é»òÕßµ¯´°Õ»ÄÚ
+	if (!ShowPanelGroup.Contains(PanelName) && !PopPanelStack.Contains(PanelName))
+	{
+		AllPanelGroup.Remove(PanelName);
+		LoadedPanelName.Remove(PanelName);
+		//ÔËĞĞPanelExitÉúÃüÖÜÆÚ, ¾ßÌåµÄÄÚ´æÊÍ·Å´úÂëÔÚ¸ÃÖÜÆÚº¯ÊıÀïÃæ
+		PanelWidget->PanelExit();
+		//Ö±½Ó·µ»Ø
+		return;
+	}
+
+	//´¦ÀíÒş²ØUIÃæ°åÏà¹ØµÄÁ÷³Ì
+	switch (PanelWidget->UINature.PanelShowType)
+	{
+	case EPanelShowType::DoNothing:
+		ExitPanelDoNothing(PanelWidget);
+		break;
+	case EPanelShowType::HideOther:
+		ExitPanelHideOther(PanelWidget);
+		break;
+	case EPanelShowType::Reverse:
+		ExitPanelReverse(PanelWidget);
+		break;
+	}
+}
+
+void UDDFrameWidget::ExitPanelDoNothing(UDDPanelWidget* PanelWidget)
+{
+	//´ÓÏÖÊµ×é, È«²¿×é, ¼ÓÔØÃû×Ö×éÒÆ³ı
+	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
+	AllPanelGroup.Remove(PanelWidget->GetObjectName());
+	LoadedPanelName.Remove(PanelWidget->GetObjectName());
+
+	//ÔËĞĞÏú»ÙÉúÃüÖÜÆÚ
+	PanelWidget->PanelExit();
+}
+
+void UDDFrameWidget::ExitPanelHideOther(UDDPanelWidget* PanelWidget)
+{
+	//´ÓÏÖÊµ×é, È«²¿×é, ¼ÓÔØÃû×Ö×éÒÆ³ı
+	ShowPanelGroup.Remove(PanelWidget->GetObjectName());
+	AllPanelGroup.Remove(PanelWidget->GetObjectName());
+	LoadedPanelName.Remove(PanelWidget->GetObjectName());
+
+	//ÏÔÊ¾Í¬Ò»²ã¼¶ÏÂµÄÆäËûUIÃæ°å, Èç¹û¸ÃÃæ°åÊÇLevel_All²ã¼¶, ÏÔÊ¾ËùÓĞÏÔÊ¾×éµÄÃæ°å
+	for (TMap<FName, UDDPanelWidget*>::TIterator It(ShowPanelGroup); It; ++It)
+		if (PanelWidget->UINature.LayoutLevel == ELayoutLevel::Level_All || PanelWidget->UINature.LayoutLevel == It.Value()->UINature.LayoutLevel)
+			It.Value()->PanelDisplay();
+
+	//ÔËĞĞÏú»ÙÉúÃüÖÜÆÚ
+	PanelWidget->PanelExit();
+
+}
+
+void UDDFrameWidget::ExitPanelReverse(UDDPanelWidget* PanelWidget)
+{
+	//»ñÈ¡µ¯´°Õ»µ½Êı×é
+	TArray<UDDPanelWidget*> PopStack;
+	PopPanelStack.GenerateValueArray(PopStack);
+
+	//Èç¹û²»ÊÇ×îÉÏ²ãµÄµ¯´°, Ö±½Ó·µ»Ø
+	if (PopStack[PopStack.Num() - 1] != PanelWidget)
+	{
+		DDH::Debug() << PanelWidget->GetObjectName() << " Is Not Last Panel In PopPanelStack" << DDH::Endl();
+		return;
+	}
+
+	//´ÓÕ», È«²¿×é, ¼ÓÔØÃû×Ö×éÖĞÒÆ³ı
+	PopPanelStack.Remove(PanelWidget->GetObjectName());
+	AllPanelGroup.Remove(PanelWidget->GetObjectName());
+	LoadedPanelName.Remove(PanelWidget->GetObjectName());
+	//ÔËĞĞÏú»ÙÉúÃüÖÜÆÚº¯Êı
+	PanelWidget->PanelExit();
+
+	//µ÷Õûµ¯´°Õ»
+	PopStack.Pop();
+	if (PopStack.Num() > 0)
+	{
+		UDDPanelWidget* PrePanelWidget = PopStack[PopStack.Num() - 1];
+		//×ªÒÆÕÚÕÖµ½ĞÂµÄ×î¶¥²ãµÄµ¯´°µÄÏÂÒ»²ã
+		TransferMask(PrePanelWidget);
+		//»Ø¸´±»¶³½áµÄ×î¶¥²ãµÄµ¯´°
+		PrePanelWidget->PanelResume();
+	}
+	else
+		RemoveMaskPanel();
+}
+
+void UDDFrameWidget::ActiveMask(UCanvasPanel* WorkLayout, EPanelLucenyType LucenyType)
+{
+	//ÒÆ³öÕÚÕÖ
+	RemoveMaskPanel(WorkLayout);
+
+	//Ìí¼ÓÕÚÕÖµ½ĞÂµÄ¸¸¿Ø¼ş
+	UCanvasPanelSlot* MaskSlot = WorkLayout->AddChildToCanvas(MaskPanel);
+	MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+	MaskSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+
+	//¸ù¾İÍ¸Ã÷ÀàĞÍÉèÖÃÍ¸Ã÷¶È
+	switch (LucenyType)
+	{
+	case EPanelLucenyType::Lucency:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(NormalLucency);
+		break;
+	case EPanelLucenyType::Translucence:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(TranslucenceLucency);
+		break;
+	case EPanelLucenyType::ImPenetrable:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
+		break;
+	case EPanelLucenyType::Pentrate:
+		MaskPanel->SetVisibility(ESlateVisibility::Hidden);
+		MaskPanel->SetColorAndOpacity(NormalLucency);
+		break;
+	}
+}
+
+void UDDFrameWidget::ActiveMask(UOverlay* WorkLayout, EPanelLucenyType LucenyType)
+{
+	//ÒÆ³öÕÚÕÖ
+	RemoveMaskPanel(WorkLayout);
+
+	//Ìí¼ÓÕÚÕÖµ½ĞÂµÄ¸¸¿Ø¼ş
+	UOverlaySlot* MaskSlot = WorkLayout->AddChildToOverlay(MaskPanel);
+	MaskSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
+	MaskSlot->SetHorizontalAlignment(HAlign_Fill);
+	MaskSlot->SetVerticalAlignment(VAlign_Fill);
+
+
+	//¸ù¾İÍ¸Ã÷ÀàĞÍÉèÖÃÍ¸Ã÷¶È
+	switch (LucenyType)
+	{
+	case EPanelLucenyType::Lucency:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(NormalLucency);
+		break;
+	case EPanelLucenyType::Translucence:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(TranslucenceLucency);
+		break;
+	case EPanelLucenyType::ImPenetrable:
+		MaskPanel->SetVisibility(ESlateVisibility::Visible);
+		MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
+		break;
+	case EPanelLucenyType::Pentrate:
+		MaskPanel->SetVisibility(ESlateVisibility::Hidden);
+		MaskPanel->SetColorAndOpacity(NormalLucency);
+		break;
+	}
+}
+
+void UDDFrameWidget::TransferMask(UDDPanelWidget* PanelWidget)
+{
+	//ÁÙÊ±±£´æPanelWidgetÒÔ¼°ËüÉÏ²ãµÄËùÓĞUIÃæ°å
+	TArray<UDDPanelWidget*> AbovePanelStack;
+	//ÁÙÊ±±£´æPanelWidgetÒÔ¼°ËüÉÏ²ãµÄËùÓĞUIÃæ°åµÄ²¼¾ÖÊı¾İ
+	TArray<FUINature> AboveNatureStack;
+
+	//Çø·Ö²¼¾Ö
+	if (PanelWidget->UINature.LayoutType == ELayoutType::Canvas)
+	{
+		UCanvasPanel* WorkLayout = Cast<UCanvasPanel>(PanelWidget->GetParent());
+
+		int32 StartOrder = WorkLayout->GetChildIndex(PanelWidget);
+		for (int i = StartOrder; i < WorkLayout->GetChildrenCount(); ++i)
+		{
+			UDDPanelWidget* TempPanelWidget = Cast<UDDPanelWidget>(WorkLayout->GetChildAt(i));
+			//Èç¹û²»ÊÇDDPanelWidget
+			if (!TempPanelWidget)
+				continue;
+			//±£´æUIÃæ°åÒÔ¼°²¼¾ÖÊı¾İ
+			AbovePanelStack.Push(TempPanelWidget);
+			FUINature TempUINature;
+			UCanvasPanelSlot* TempPanelSlot = Cast<UCanvasPanelSlot>(TempPanelWidget);
+			TempUINature.Anchors = TempPanelSlot->GetAnchors();
+			TempUINature.Offsets = TempPanelSlot->GetOffsets();
+			AboveNatureStack.Push(TempUINature);
+		}
+
+		//Ñ­»·ÒÆ³ıÉÏ²ãUIÃæ°å
+		for (int i = 0; i < AbovePanelStack.Num(); ++i)
+			AbovePanelStack[i]->RemoveFromParent();
+
+		//Ìí¼ÓÕÚÕÖµ½ĞÂµÄ¸¸¿Ø¼ş
+		UCanvasPanelSlot* MaskSlot = WorkLayout->AddChildToCanvas(MaskPanel);
+		MaskSlot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
+		MaskSlot->SetOffsets(FMargin(0.f, 0.f, 0.f, 0.f));
+
+		//¸ù¾İÍ¸Ã÷ÀàĞÍÉèÖÃÍ¸Ã÷¶È
+		switch (PanelWidget->UINature.PanelLucenyType)
+		{
+		case EPanelLucenyType::Lucency:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(NormalLucency);
+			break;
+		case EPanelLucenyType::Translucence:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(TranslucenceLucency);
+			break;
+		case EPanelLucenyType::ImPenetrable:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
+			break;
+		case EPanelLucenyType::Pentrate:
+			MaskPanel->SetVisibility(ESlateVisibility::Hidden);
+			MaskPanel->SetColorAndOpacity(NormalLucency);
+			break;
+		}
+
+		//°Ñ¸Õ²ÅÒÆ³öµÄUIÃæ°å°´Ë³ĞòÖØĞÂÌí¼Óµ½²¼¾Ö¿Ø¼ş
+		for (int i = 0; i < AbovePanelStack.Num(); ++i)
+		{
+			UCanvasPanelSlot* PanelSlot = WorkLayout->AddChildToCanvas(AbovePanelStack[i]);
+			PanelSlot->SetAnchors(AboveNatureStack[i].Anchors);
+			PanelSlot->SetOffsets(AboveNatureStack[i].Offsets);
+		}
+	}
+	else
+	{
+		UOverlay* WorkLayout = Cast<UOverlay>(PanelWidget->GetParent());
+
+		int32 StartOrder = WorkLayout->GetChildIndex(PanelWidget);
+		for (int i = StartOrder; i < WorkLayout->GetChildrenCount(); ++i)
+		{
+			UDDPanelWidget* TempPanelWidget = Cast<UDDPanelWidget>(WorkLayout->GetChildAt(i));
+			if (!TempPanelWidget)
+				continue;
+			//±£´æUIÃæ°åÒÔ¼°²¼¾ÖÊı¾İ
+			AbovePanelStack.Push(TempPanelWidget);
+			FUINature TempUINature;
+			UOverlaySlot* TempPanelSlot = Cast<UOverlaySlot>(TempPanelWidget->Slot);
+			TempUINature.Offsets = TempPanelSlot->Padding;
+			TempUINature.HAlign = TempPanelSlot->HorizontalAlignment;
+			TempUINature.VAlign = TempPanelSlot->VerticalAlignment;
+			AboveNatureStack.Push(TempUINature);
+		}
+
+		//Ñ­»·ÒÆ³ıÉÏ²ãUIÃæ°å
+		for (int i = 0; i < AbovePanelStack.Num(); ++i)
+			AbovePanelStack[i]->RemoveFromParent();
+
+		//Ìí¼ÓÕÚÕÖµ½ĞÂµÄ¸¸¿Ø¼ş
+		UOverlaySlot* MaskSlot = WorkLayout->AddChildToOverlay(MaskPanel);
+		MaskSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
+		MaskSlot->SetHorizontalAlignment(HAlign_Fill);
+		MaskSlot->SetVerticalAlignment(VAlign_Fill);
+
+
+		//¸ù¾İÍ¸Ã÷ÀàĞÍÉèÖÃÍ¸Ã÷¶È
+		switch (PanelWidget->UINature.PanelLucenyType)
+		{
+		case EPanelLucenyType::Lucency:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(NormalLucency);
+			break;
+		case EPanelLucenyType::Translucence:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(TranslucenceLucency);
+			break;
+		case EPanelLucenyType::ImPenetrable:
+			MaskPanel->SetVisibility(ESlateVisibility::Visible);
+			MaskPanel->SetColorAndOpacity(ImPenetrableLucency);
+			break;
+		case EPanelLucenyType::Pentrate:
+			MaskPanel->SetVisibility(ESlateVisibility::Hidden);
+			MaskPanel->SetColorAndOpacity(NormalLucency);
+			break;
+		}
+
+		//½«UIÃæ°åÌî³ä»Ø²¼¾Ö¿Ø¼ş
+		for (int i = 0; i < AbovePanelStack.Num(); ++i)
+		{
+			UOverlaySlot* PanelSlot = WorkLayout->AddChildToOverlay(AbovePanelStack[i]);
+			PanelSlot->SetPadding(AboveNatureStack[i].Offsets);
+			PanelSlot->SetHorizontalAlignment(AboveNatureStack[i].HAlign);
+			PanelSlot->SetVerticalAlignment(AboveNatureStack[i].VAlign);
+		}
+	}
+}
+
+void UDDFrameWidget::RemoveMaskPanel(UPanelWidget* WorkLayout /*= NULL*/)
+{
+	//»ñÈ¡ÕÚÕÖµ±Ç°¸¸¿Ø¼ş
 	UPanelWidget* MaskParent = MaskPanel->GetParent();
 	if (MaskParent)
 	{
-		//å¦‚æœMaskçš„çˆ¶çº§ä¸å³å°†æ·»åŠ Maskçš„çˆ¶çº§ç›¸åŒçš„è¯å°±ä¸ç”¨å»ç§»é™¤çˆ¶çº§äº†
-		if (MaskParent->GetChildrenCount() == 1 && MaskParent != WorkLayout)
+		//±È½Ïµ±Ç°¸¸¿Ø¼şÓë½«Òª²åÈëµÄ¸¸¿Ø¼şÊÇ·ñÏàÍ¬, µ±Ç°¸¸¿Ø¼şµÄÖ®¿Ø¼şÎª1
+		if (MaskParent != WorkLayout && MaskParent->GetChildrenCount() == 1)
 		{
 			MaskParent->RemoveFromParent();
 			UCanvasPanel* ParentCanvas = Cast<UCanvasPanel>(MaskParent);
@@ -966,8 +919,7 @@ void UDDFrameWidget::RemoveMaskPanel(UPanelWidget* WorkLayout)
 				UnActiveOverlay.Push(ParentOverlay);
 			}
 		}
-		//å°†é®ç½©ä»çˆ¶çº§ç§»é™¤
+		//½«ÕÚÕÖ´Ó¸¸¼¶ÒÆ³ı
 		MaskPanel->RemoveFromParent();
 	}
 }
-

@@ -14,13 +14,10 @@ UCLASS()
 class DATADRIVEN_API ADDAIController : public AAIController, public IDDOO
 {
 	GENERATED_BODY()
-	
+
 public:
 
 	ADDAIController();
-
-	//PlayerController不允许销毁,不允许重写销毁周期函数
-	//virtual void DDRelease() override;
 
 public:
 
@@ -34,9 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "DataDriven")
 		FName ClassName;
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
 	
 };

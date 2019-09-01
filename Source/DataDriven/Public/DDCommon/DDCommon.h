@@ -11,8 +11,8 @@
 class ADDDriver;
 class APlayerController;
 
-namespace DDH {
-
+namespace DDH
+{
 	FORCEINLINE DDRecord& Debug(float InTime = 3000.f, FColor InColor = FColor::Yellow)
 	{
 		DDRecord::Get()->PatternID = 0;
@@ -43,12 +43,23 @@ namespace DDH {
 		return *DDRecord::Get();
 	}
 
+
 	FORCEINLINE DDRecord& Endl()
 	{
 		return *DDRecord::Get();
 	}
 
-	//å°†ä¼ å…¥çš„Enumå€¼å¯¹åº”çš„FNameè¾“å‡º
+	//½«´«ÈëµÄEnumÖµ¶ÔÓ¦µÄFStringÊä³ö, Ö±½ÓÊä³öValue¶ÔÓ¦µÄÖµ
+	template<typename TEnum>
+	FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value)
+	{
+		const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
+		if (!EnumPtr)
+			return FString("InValid");
+		return EnumPtr->GetEnumName((int32)Value);
+	}
+
+	//½«´«ÈëµÄEnumÖµ¶ÔÓ¦µÄFNameÊä³ö
 	template<typename TEnum>
 	FORCEINLINE FName GetEnumValueAsName(const FString& Name, TEnum Value)
 	{
@@ -58,17 +69,8 @@ namespace DDH {
 		}
 		return FName(*EnumPtr->GetEnumName((int32)Value));
 	}
-	//å°†ä¼ å…¥çš„Enumå€¼å¯¹åº”çš„FStringè¾“å‡º, ç›´æ¥è¾“å‡ºValueå¯¹åº”çš„å€¼
-	template<typename TEnum>
-	FORCEINLINE FString GetEnumValueAsString(const FString& Name, TEnum Value)
-	{
-		const UEnum* EnumPtr = FindObject<UEnum>(ANY_PACKAGE, *Name, true);
-		if (!EnumPtr) {
-			return FString("InValid");
-		}
-		return EnumPtr->GetEnumName((int32)Value);
-	}
-	//å°†ä¼ å…¥çš„FNameå¯¹åº”çš„Enumè¾“å‡º
+
+	//½«´«ÈëµÄFName¶ÔÓ¦µÄEnumÊä³ö
 	template<typename TEnum>
 	FORCEINLINE TEnum GetEnumValueFromName(const FString& Name, FName Value)
 	{
@@ -78,7 +80,8 @@ namespace DDH {
 		}
 		return (TEnum)EnumPtr->GetIndexByName(Value);
 	}
-	//å°†ä¼ å…¥çš„FNameå¯¹åº”çš„Enumçš„åºå·è¾“å‡º
+
+	//½«´«ÈëµÄFName¶ÔÓ¦µÄEnumµÄĞòºÅÊä³ö
 	FORCEINLINE int32 GetEnumIndexFromName(const FString& Name, FName Value)
 	{
 		const UEnum* EnumPtr = FindObject<UEnum>((UObject*)ANY_PACKAGE, *Name, true);
@@ -87,34 +90,18 @@ namespace DDH {
 		}
 		return EnumPtr->GetIndexByName(Value);
 	}
-	//è·å–è°ƒç”¨ç»“æœå‡½æ•°
+
+	//»ñÈ¡·½Éäµ÷ÓÃ½á¹û
 	FORCEINLINE FString GetCallResult(ECallResult Value)
 	{
 		const UEnum* EnumPtr = FindObject<UEnum>((UObject*)ANY_PACKAGE, *FString("ECallResult"), true);
 		return EnumPtr->GetEnumName((int32)Value);
 	}
-	//è®¡ç®—å‘é‡å¤¹è§’, è¿”å› 0 - 360 åº¦, ç¬¬ä¸€ä¸ªå‘é‡ä¸ºæ ‡å®šå‘é‡, æŒ‰é¡ºæ—¶é’ˆæ–¹å‘è®¡ç®—
-	FORCEINLINE float CalcVectorAngle(FVector ArcVec, FVector DesVec)
-	{
-		ArcVec.Normalize();
-		DesVec.Normalize();
-		float ResAngle = (FVector::CrossProduct(ArcVec, DesVec).Z > 0 ? 1.f : -1.f) * FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(ArcVec, DesVec)));
-		if (ResAngle < 0.f) ResAngle += 360.f;
-		return ResAngle;
-	}
-	FORCEINLINE float CalcVector2DAngle(FVector2D ArcVec, FVector2D DesVec)
-	{
-		ArcVec.Normalize();
-		DesVec.Normalize();
-		float ResAngle = (FVector2D::CrossProduct(ArcVec, DesVec) > 0 ? 1.f : -1.f) * FMath::RadiansToDegrees(FMath::Acos(FVector2D::DotProduct(ArcVec, DesVec)));
-		if (ResAngle < 0.f) ResAngle += 360.f;
-		return ResAngle;
-	}
 }
 
 
 /**
- *
+ * 
  */
 UCLASS()
 class DATADRIVEN_API UDDCommon : public UObject
@@ -125,90 +112,28 @@ public:
 
 	static UDDCommon* Get();
 
+	void InitDriver(ADDDriver* InDriver);
+
 	ADDDriver* GetDriver();
-
-	APlayerController* GetController();
-
-	void InitCommon(ADDDriver* InDriver);
 
 	void InitController(APlayerController* InController);
 
-	//æš‚åœæ¸¸æˆ
+	APlayerController* GetController();
+
+	//ÔİÍ£ÓÎÏ·
 	void SetPauseGame(bool IsPause);
 
-	//è·å–æ¸¸æˆæ˜¯å¦æš‚åœäº†
+	//»ñÈ¡ÊÇ·ñÔİÍ£ÁËÓÎÏ·
 	const bool IsPauseGame() const;
 
 private:
 
+	static UDDCommon* DDInst;
 
-private:
-
-	ADDDriver * Driver;
+	ADDDriver* Driver;
 
 	APlayerController* PlayerController;
 
-	static UDDCommon* DDInst;
 
+	
 };
-
-
-
-
-
-//#include "Kismet/GameplayStatics.h"
-//#include "Kismet/BlueprintFunctionLibrary.h"
-//#include "Components/LineBatchComponent.h"
-//Debugæ–¹æ³•
-//FORCEINLINE void Debug(FString Message, float Duration = 10.f) {
-//	if (GEngine) {
-//		GEngine->AddOnScreenDebugMessage(-1, Duration, FColor::Yellow, Message);
-//	}
-//}
-
-//ä¸‹é¢è¿™ä¸¤ä¸ªæ–¹æ³•æ”¾åœ¨äº†UDDCommon,æ›´åŠ å®‰å…¨
-////è·å–ä¸–ç•Œ
-//FORCEINLINE UWorld* GetDDWorld() {
-//	if (GWorld) {
-//		return GWorld.GetReference();
-//	}
-//	return NULL;
-//}
-
-////è·å–GameModeæ–¹æ³•,è¿™ä¸ªæ–¹æ³•ä½œä¸ºè·å–GameModeçš„å‚è€ƒ,ä¸ä½¿ç”¨
-//FORCEINLINE ADDGameMode* GetDDGameMode()
-//{
-//	if (GWorld) {
-//		UWorld* WorldPtr = GWorld.GetReference();
-//		if (WorldPtr) {
-//			if (UGameplayStatics::GetGameMode(WorldPtr)) {
-//				return (ADDGameMode*)(UGameplayStatics::GetGameMode(WorldPtr));
-//			}
-//		}
-//	}
-//	return NULL;
-//}
-
-#if 0
-	//ç»˜åˆ¶å›¾å½¢
-FORCEINLINE void DrawMarkPoint(FVector InPoint, FLinearColor InColor = FLinearColor::Red, float Duration = 3000.f, float InSize = 10.f)
-{
-	ULineBatchComponent* const LineBatcher = UDDCommon::Get()->GetDriver()->GetWorld()->PersistentLineBatcher;
-	if (LineBatcher)
-		LineBatcher->DrawPoint(InPoint, InColor, InSize, 0, Duration);
-}
-
-FORCEINLINE void DrawMarkLine(FVector StartPoint, FVector EndPoint, FLinearColor InColor = FLinearColor::Red, float Duration = 3000.f)
-{
-	ULineBatchComponent* const LineBatcher = UDDCommon::Get()->GetDriver()->GetWorld()->PersistentLineBatcher;
-	if (LineBatcher)
-		LineBatcher->DrawLine(StartPoint, EndPoint, InColor, 0, 0.f, Duration);
-}
-
-FORCEINLINE void DrawMarkLines(TArray<FBatchedLine> InLines)
-{
-	ULineBatchComponent* const LineBatcher = UDDCommon::Get()->GetDriver()->GetWorld()->PersistentLineBatcher;
-	if (LineBatcher)
-		LineBatcher->DrawLines(InLines);
-}
-#endif

@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DDMessage.h"
 
+#include "DDMessage.h"
 
 
 UDDInputBinder::UDDInputBinder()
 {
-	//CurrentCount默认为0, TotalCount由外界赋值
 	InputCount = 0;
 	bExecuteWhenPause = false;
 }
@@ -14,13 +13,13 @@ UDDInputBinder::UDDInputBinder()
 void UDDInputBinder::PressEvent()
 {
 	InputCount++;
-	//如果CurrentCount与TotalCount相等, 说明所有按键都按下了
+	//如果InputCount与TotalCount相等, 说明所有按键都按下了
 	if (InputCount == TotalCount)
 	{
 		//如果允许在暂停时执行
 		if (bExecuteWhenPause)
 			InputDele.ExecuteIfBound();
-		else if (!bExecuteWhenPause && !UDDCommon::Get()->IsPauseGame()) //如果不允许在暂停时执行但是现在没有暂停
+		else if (!bExecuteWhenPause && !UDDCommon::Get()->IsPauseGame())
 			InputDele.ExecuteIfBound();
 	}
 }
@@ -33,12 +32,17 @@ void UDDInputBinder::ReleaseEvent()
 
 UDDMessage::UDDMessage()
 {
-	MsgQuene = new DDMsgQueue();
+	MsgQuene = new DDMsgQuene();
+}
+
+void UDDMessage::MessageInit()
+{
+
 }
 
 void UDDMessage::MessageBeginPlay()
 {
-	//从DDCommon获取Controller
+	//从UDDCommon获取Controller
 	PlayerController = UDDCommon::Get()->GetController();
 }
 
@@ -52,38 +56,43 @@ void UDDMessage::MessageTick(float DeltaSeconds)
 		for (TMap<FName, DDCoroTask*>::TIterator Ih(It->Value); Ih; ++Ih)
 		{
 			Ih->Value->Work(DeltaSeconds);
-			if (Ih->Value->IsFinish())
+			if (Ih->Value->IsFinish() || Ih->Value->IsDestory)
 			{
 				delete Ih->Value;
-				CompleteNode.Add(Ih->Key);
+				CompleteNode.Push(Ih->Key);
 			}
 		}
 		for (int i = 0; i < CompleteNode.Num(); ++i)
 			It->Value.Remove(CompleteNode[i]);
-		if (It->Value.Num() == 0) CompleteTask.Add(It->Key);
+		if (It->Value.Num() == 0)
+			CompleteTask.Push(It->Key);
 	}
 	for (int i = 0; i < CompleteTask.Num(); ++i)
 		CoroStack.Remove(CompleteTask[i]);
 
-	//处理延时, 重用CompleteTask
+
+
+	//处理延时系统
 	CompleteTask.Empty();
 	for (TMap<FName, TMap<FName, DDInvokeTask*>>::TIterator It(InvokeStack); It; ++It)
 	{
 		TArray<FName> CompleteNode;
 		for (TMap<FName, DDInvokeTask*>::TIterator Ih(It->Value); Ih; ++Ih)
 		{
-			if (Ih->Value->UpdateOperate(DeltaSeconds))
+			if (Ih->Value->UpdateOperate(DeltaSeconds) || Ih->Value->IsDestroy)
 			{
 				delete Ih->Value;
-				CompleteNode.Add(Ih->Key);
+				CompleteNode.Push(Ih->Key);
 			}
-			for (int i = 0; i < CompleteNode.Num(); ++i)
-				It->Value.Remove(CompleteNode[i]);
-			if (It->Value.Num() == 0) CompleteTask.Add(It->Key);
 		}
+		for (int i = 0; i < CompleteNode.Num(); ++i)
+			It->Value.Remove(CompleteNode[i]);
+		if (It->Value.Num() == 0)
+			CompleteTask.Push(It->Key);
 	}
 	for (int i = 0; i < CompleteTask.Num(); ++i)
 		InvokeStack.Remove(CompleteTask[i]);
+
 }
 
 bool UDDMessage::StartCoroutine(FName ObjectName, FName CoroName, DDCoroTask* CoroTask)
@@ -106,23 +115,17 @@ bool UDDMessage::StopCoroutine(FName ObjectName, FName CoroName)
 {
 	if (CoroStack.Contains(ObjectName) && CoroStack.Find(ObjectName)->Find(CoroName))
 	{
-		DDCoroTask* CoroTask = *(CoroStack.Find(ObjectName)->Find(CoroName));
-		CoroStack.Find(ObjectName)->Remove(CoroName);
-		if (CoroStack.Find(ObjectName)->Num() == 0) CoroStack.Remove(ObjectName);
-		delete CoroTask;
+		(*(CoroStack.Find(ObjectName)->Find(CoroName)))->IsDestory = true;
 		return true;
 	}
 	return false;
 }
 
-void UDDMessage::StopAllCoroutine(FName ObjectName)
+void UDDMessage::StopAllCorotine(FName ObjectName)
 {
 	if (CoroStack.Contains(ObjectName))
-	{
 		for (TMap<FName, DDCoroTask*>::TIterator It(*CoroStack.Find(ObjectName)); It; ++It)
-			delete It->Value;
-		CoroStack.Remove(ObjectName);
-	}
+			It->Value->IsDestory = true;
 }
 
 bool UDDMessage::StartInvoke(FName ObjectName, FName InvokeName, DDInvokeTask* InvokeTask)
@@ -132,7 +135,7 @@ bool UDDMessage::StartInvoke(FName ObjectName, FName InvokeName, DDInvokeTask* I
 		TMap<FName, DDInvokeTask*> NewTaskStack;
 		InvokeStack.Add(ObjectName, NewTaskStack);
 	}
-	if (!InvokeStack.Find(ObjectName)->Contains(InvokeName))
+	if (!(InvokeStack.Find(ObjectName)->Contains(InvokeName)))
 	{
 		InvokeStack.Find(ObjectName)->Add(InvokeName, InvokeTask);
 		return true;
@@ -145,10 +148,7 @@ bool UDDMessage::StopInvoke(FName ObjectName, FName InvokeName)
 {
 	if (InvokeStack.Contains(ObjectName) && InvokeStack.Find(ObjectName)->Find(InvokeName))
 	{
-		DDInvokeTask* InvokeTask = *(InvokeStack.Find(ObjectName)->Find(InvokeName));
-		InvokeStack.Find(ObjectName)->Remove(InvokeName);
-		if (InvokeStack.Find(ObjectName)->Num() == 0) InvokeStack.Remove(ObjectName);
-		delete InvokeTask;
+		(*(InvokeStack.Find(ObjectName)->Find(InvokeName)))->IsDestroy = true;
 		return true;
 	}
 	return false;
@@ -157,16 +157,14 @@ bool UDDMessage::StopInvoke(FName ObjectName, FName InvokeName)
 void UDDMessage::StopAllInvoke(FName ObjectName)
 {
 	if (InvokeStack.Contains(ObjectName))
-	{
 		for (TMap<FName, DDInvokeTask*>::TIterator It(*InvokeStack.Find(ObjectName)); It; ++It)
-			delete It->Value;
-		InvokeStack.Remove(ObjectName);
-	}
+			It->Value->IsDestroy = true;
 }
 
 void UDDMessage::UnBindInput(FName ObjectName)
 {
-	if (!BinderGroup.Contains(ObjectName)) return;
+	if (!BinderGroup.Contains(ObjectName))
+		return;
 	TArray<UDDInputBinder*> BinderList = *BinderGroup.Find(ObjectName);
 	for (int i = 0; i < BinderList.Num(); ++i)
 	{
@@ -175,3 +173,4 @@ void UDDMessage::UnBindInput(FName ObjectName)
 	}
 	BinderGroup.Remove(ObjectName);
 }
+

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDWheeledVehicle.h"
+
 
 ADDWheeledVehicle::ADDWheeledVehicle()
 {
@@ -11,13 +13,13 @@ void ADDWheeledVehicle::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//鑷姩娉ㄥ唽
+	//自动注册
 	RegisterToModule(ModuleName, ObjectName, ClassName);
 }
 
 void ADDWheeledVehicle::DDRelease()
 {
-	//鑳借皟鐢ㄨ繖涓柟娉曢偅涔堜竴瀹氭槸娉ㄥ唽鍒颁簡妗嗘灦,鑾峰彇鐨勪笘鐣屼竴瀹氫笉涓虹┖
+	IDDOO::DDRelease();
+	//能调用这个方法那么一定是注册到了框架,获取的世界一定不为空
 	GetDDWorld()->DestroyActor(this);
 }
-

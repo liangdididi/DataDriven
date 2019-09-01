@@ -1,4 +1,4 @@
-// Copyright 1998-2018 Epic Games, Inc. All Rights Reserved.
+// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -10,7 +10,6 @@ public class DataDriven : ModuleRules
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"DataDriven/Public"
 				// ... add public include paths required here ...
 			}
 			);
@@ -18,7 +17,6 @@ public class DataDriven : ModuleRules
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
-				"DataDriven/Private",
 				// ... add other private include paths required here ...
 			}
 			);
@@ -27,7 +25,7 @@ public class DataDriven : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core"
+				"Core",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

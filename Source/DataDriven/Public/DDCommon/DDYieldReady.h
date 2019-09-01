@@ -193,5 +193,5 @@ DDCORO_LABEL_62 :
 DDCORO_LABEL_63 :
 #	endif
 #else
-#	error No Include DDCORO_BEGIN()
+#error No Include DDCORO_BEGIN()
 #endif

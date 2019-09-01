@@ -7,18 +7,18 @@
 #include "DDOO.h"
 #include "DDObject.generated.h"
 
-
 /**
- *
+ * 
  */
 UCLASS()
-class DATADRIVEN_API UDDObject : public UObject, public IDDOO
+class DATADRIVEN_API UDDObject : public UObject , public IDDOO
 {
 	GENERATED_BODY()
 
 public:
-
+	
 	//ÖØÐ´ÊÍ·Åº¯Êý
 	virtual void DDRelease() override;
 
 };
+

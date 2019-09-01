@@ -3,13 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "DDMM.h"
 #include "UObject/NoExportTypes.h"
-#include "DDCommon/DDCommon.h"
+#include "DDMM.h"
 #include "GameFramework/PlayerController.h"
-
 #include "DDMessage.generated.h"
-
 
 
 #pragma region InputBinder
@@ -35,6 +32,7 @@ public:
 
 	uint8 TotalCount;
 
+	//ÓÎÏ·ÔİÍ£Ê±ÊÇ·ñÖ´ĞĞ°´¼üÊÂ¼ş
 	uint8 bExecuteWhenPause;
 
 	FDDInputEvent InputDele;
@@ -42,17 +40,18 @@ public:
 public:
 
 	template<class UserClass>
-	void InitBinder(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, uint32 InCount)
+	void InitBinder(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, uint8 InCount)
 	{
 		TotalCount = InCount;
 		InputDele.BindUObject(UserObj, InMethod);
 	}
 
-
-
 };
 
+
+
 #pragma endregion
+
 
 /**
  *
@@ -66,72 +65,77 @@ public:
 
 	UDDMessage();
 
-	virtual void MessageInit() {}
+	virtual void MessageInit();
 
 	virtual void MessageBeginPlay();
 
 	virtual void MessageTick(float DeltaSeconds);
 
-	//æ³¨å†Œè°ƒç”¨æ¥å£
+	//×¢²áµ÷ÓÃ½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDCallHandle<RetType, VarTypes...> RegisterCallPort(FName CallName);
 
-	//æ³¨å†Œè°ƒç”¨æ–¹æ³•
+	//×¢²á·½·¨½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDFunHandle RegisterFunPort(FName CallName, TFunction<RetType(VarTypes...)> InsFun);
 
-	//å¼€å§‹ä¸€ä¸ªåç¨‹, è¿”å›trueè¯´æ˜å¼€å¯åç¨‹æˆåŠŸ, è¿”å›falseè¯´æ˜å·²ç»æœ‰ç›¸åŒåå­—çš„åç¨‹åœ¨è¿è¡Œ
+	//¿ªÆôÒ»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷¿ªÆô³É¹¦, ·µ»ØfalseËµÃ÷ÒÑ¾­ÓĞÍ¬¶ÔÏóÃûÍ¬Ğ­³ÌÈÎÎñÃûµÄĞ­³Ì´æÔÚ
 	bool StartCoroutine(FName ObjectName, FName CoroName, DDCoroTask* CoroTask);
 
-	//åœæ­¢ä¸€ä¸ªåç¨‹, è¿”å›trueè¯´æ˜åœæ­¢åç¨‹æˆåŠŸ, è¿”å›falseè¯´æ˜åç¨‹æ—©å·²ç»åœæ­¢
+	//Í£Ö¹Ò»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷Í£Ö¹Ğ­³Ì³É¹¦, ·µ»ØfalseËµÃ÷Ğ­³ÌÔçÒÑ¾­Í£Ö¹
 	bool StopCoroutine(FName ObjectName, FName CoroName);
 
-	//åœæ­¢è¯¥å¯¹è±¡çš„æ‰€æœ‰åç¨‹
-	void StopAllCoroutine(FName ObjectName);
+	//Í£Ö¹¸Ã¶ÔÏóµÄËùÓĞĞ­³Ì
+	void StopAllCorotine(FName ObjectName);
 
-	//å¼€å§‹ä¸€ä¸ªå»¶æ—¶æ–¹æ³•, è¿”å›trueè¯´æ˜å¼€å¯æˆåŠŸ, è¿”å›falseè¯´æ˜å·²ç»æœ‰ç›¸åŒåå­—çš„æ–¹æ³•åœ¨è¿è¡Œ
+	//¿ªÊ¼Ò»¸öÑÓÊ±·½·¨, ·µ»ØtrueËµÃ÷³É¹¦, ·µ»ØfalseËµÃ÷ÒÑ¾­´æÔÚÍ¬¶ÔÏóÃûÍ¬ÈÎÎñÃûµÄÈÎÎñ
 	bool StartInvoke(FName ObjectName, FName InvokeName, DDInvokeTask* InvokeTask);
 
-	//åœæ­¢ä¸€ä¸ªå»¶æ—¶æ–¹æ³•, è¿”å›trueè¯´æ˜åœæ­¢å»¶æ—¶æˆåŠŸ, è¿”å›falseè¯´æ˜å»¶æ—¶æ—©å·²ç»åœæ­¢
+	//Í£Ö¹Ò»¸öÑÓÊ±
 	bool StopInvoke(FName ObjectName, FName InvokeName);
 
-	//åœæ­¢è¯¥å¯¹è±¡çš„æ‰€æœ‰å»¶æ—¶æ–¹æ³•
+	//Í£Ö¹Ä³¶ÔÏóÏÂµÄËùÓĞÑÓÊ±·½·¨
 	void StopAllInvoke(FName ObjectName);
 
-	//æ³¨å†ŒAxisæŒ‰é”®äº‹ä»¶
+	//°ó¶¨Axis°´¼üÊÂ¼ş
 	template<class UserClass>
-	FInputAxisBinding& BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName);
+	FInputAxisBinding& BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName);
 
-	//æ³¨å†Œè§¦æ‘¸äº‹ä»¶
+	//°ó¶¨´¥ÃşÊÂ¼ş
 	template<class UserClass>
 	FInputTouchBinding& BindTouch(UserClass* UserObj, typename FInputTouchHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const EInputEvent KeyEvent);
 
-	//æ³¨å†Œå•ä¸ªæŒ‰é”®äº‹ä»¶
+	//°ó¶¨Antion°´¼üÊÂ¼ş
+	template<class UserClass>
+	FInputActionBinding& BindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent);
+
+	//°ó¶¨µ¥¸ö°´¼üÊÂ¼ş
 	template<class UserClass>
 	FInputKeyBinding& BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent);
 
-	//æ³¨å†Œå¤šä¸ªæŒ‰é”®äº‹ä»¶
+	//°ó¶¨¶à¸ö°´¼ü
 	template<class UserClass>
 	UDDInputBinder& BindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, TArray<FKey>& KeyGroup, FName ObjectName);
 
-	//æŒ‰é”®äº‹ä»¶æ³¨é”€
+	//½â°ó¶ÔÏóµÄËùÓĞ°´¼üÊÂ¼ş
 	void UnBindInput(FName ObjectName);
+
 
 protected:
 
-	//æ¶ˆæ¯é˜Ÿåˆ—
-	DDMsgQueue * MsgQuene;
+	//ÊÂ¼ş¶ÓÁĞ
+	DDMsgQuene* MsgQuene;
 
-	//åç¨‹åºåˆ—
+	//Ğ­³ÌĞòÁĞ, ¼ü1±£´æ¶ÔÏóÃû, ÖµµÄ¼üFName¶ÔÓ¦µÄÊÇĞ­³ÌÈÎÎñµÄÃû×Ö
 	TMap<FName, TMap<FName, DDCoroTask*>> CoroStack;
 
-	//å»¶æ—¶åºåˆ—
+	//ÑÓÊ±ĞòÁĞ
 	TMap<FName, TMap<FName, DDInvokeTask*>> InvokeStack;
 
-	//ç»‘å®šæŒ‰é’®äº‹ä»¶çš„é›†åˆ
+	//°ó¶¨°´¼üÊÂ¼şĞòÁĞ
 	TMap<FName, TArray<UDDInputBinder*>> BinderGroup;
 
-	//ä»DDCommonè·å–çš„Controller, ç”¨äºæ³¨å†ŒæŒ‰é”®äº‹ä»¶
+	//PlayerControllerÖ¸Õë
 	APlayerController* PlayerController;
 
 };
@@ -150,7 +154,7 @@ DDFunHandle UDDMessage::RegisterFunPort(FName CallName, TFunction<RetType(VarTyp
 }
 
 template<class UserClass>
-FInputAxisBinding& UDDMessage::BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName)
+FInputAxisBinding& UDDMessage::BindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName)
 {
 	return PlayerController->InputComponent->BindAxis(AxisName, UserObj, InMethod);
 }
@@ -162,7 +166,13 @@ FInputTouchBinding& UDDMessage::BindTouch(UserClass* UserObj, typename FInputTou
 }
 
 template<class UserClass>
-FInputKeyBinding& UDDMessage::BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
+FInputActionBinding& UDDMessage::BindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent)
+{
+	return PlayerController->InputComponent->BindAction(ActionName ,KeyEvent, UserObj, InMethod);
+}
+
+template<class UserClass>
+FInputKeyBinding& UDDMessage::BindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
 {
 	return PlayerController->InputComponent->BindKey(Key, KeyEvent, UserObj, InMethod);
 }
@@ -183,6 +193,6 @@ UDDInputBinder& UDDMessage::BindInput(UserClass* UserObj, typename FDDInputEvent
 		TArray<UDDInputBinder*> BinderList;
 		BinderGroup.Add(ObjectName, BinderList);
 	}
-	BinderGroup.Find(ObjectName)->Add(InputBinder);
+	BinderGroup.Find(ObjectName)->Push(InputBinder);
 	return *InputBinder;
 }

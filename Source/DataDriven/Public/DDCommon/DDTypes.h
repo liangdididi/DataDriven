@@ -7,11 +7,8 @@
 #include "Engine/GameEngine.h"
 #include "Engine/DataAsset.h"
 #include "Anchors.h"
-#include "DDTypes.generated.h"
 
-class UDDObject;
-class ADDActor;
-class UDDUserWidget;
+#include "DDTypes.generated.h"
 
 /**
  *
@@ -21,54 +18,60 @@ class DATADRIVEN_API UDDTypes : public UObject
 {
 	GENERATED_BODY()
 
-
 };
 
-//æ¡†æ¶è‡ªå®šä¹‰Debugè¾“å‡ºç±»
+
+
+
+
+
+//¿ò¼Ü×Ô¶¨ÒåDebugÊä³öÀà
 #pragma region LogDebug
 
 class DATADRIVEN_API DDRecord
 {
 private:
-	//è‡ªèº«å•ä¾‹
+	//×ÔÉíµ¥Àı
 	static TSharedPtr<DDRecord> RecordInst;
-	//æœ€ç»ˆè¾“å‡ºçš„å­—ç¬¦ä¸²
+
+	//Éú³ÉµÄ×Ö·û´®
 	FString RecordInfo;
-	//æ˜¾ç¤ºæ—¶é—´
+
+	//ÏÔÊ¾Ê±¼ä
 	float ShowTime;
-	//æ˜¾ç¤ºé¢œè‰²
+
+	//ÏÔÊ¾ÑÕÉ«
 	FColor ShowColor;
 
 public:
 
-	//çŠ¶æ€æ¨¡å¼, 0 : Debug, 1 : Log, 2 : Warning, 3 : Error
+	//´òÓ¡Ä£Ê½, 0 : Debug, 1 : Log, 2 : Warning, 3 : Error
 	uint8 PatternID;
 
 public:
 
-	//æ„é€ å‡½æ•°
-	inline DDRecord() {};
+	//¹¹Ôìº¯Êı
+	inline DDRecord() {}
 
 	~DDRecord() {}
 
 	static TSharedPtr<DDRecord> Get();
 
-	//è®¾å®šæ¨¡å¼
+	//Éè¶¨²ÎÊı
 	inline void InitParam(float InTime, FColor InColor)
 	{
 		ShowTime = InTime;
 		ShowColor = InColor;
 	}
 
-	//ç»“æœè¾“å‡ºå‡½æ•°
+	//Ö´ĞĞ´òÓ¡·½·¨
 	inline void Output() {
 		switch (PatternID)
 		{
 		case 0:
 		{
-			if (GEngine) {
+			if (GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, ShowTime, ShowColor, RecordInfo);
-			}
 		}
 		break;
 		case 1:
@@ -87,40 +90,36 @@ public:
 		}
 		break;
 		}
-		//æ¸…ç©ºå­—ç¬¦ä¸²
+		//Çå¿Õ×Ö·û´®
 		RecordInfo.Empty();
 	}
 
-	//é‡å†™æ“ä½œç¬¦<<
-	inline DDRecord &operator<<(FString Info) { RecordInfo.Append(Info); return *this; }
-	inline DDRecord &operator<<(FName Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FText Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(const char* Info) { RecordInfo += Info; return *this; }
-	inline DDRecord &operator<<(const char Info) { RecordInfo.AppendChar(Info); return *this; }
-	inline DDRecord &operator<<(int32 Info) { RecordInfo.Append(FString::FromInt(Info)); return *this; }
-	inline DDRecord &operator<<(float Info) { RecordInfo.Append(FString::SanitizeFloat(Info)); return *this; }
-	inline DDRecord &operator<<(double Info) { RecordInfo.Append(FString::SanitizeFloat(Info)); return *this; }
-	inline DDRecord &operator<<(bool Info) { RecordInfo.Append(Info ? FString("true") : FString("false")); return *this; }
-	inline DDRecord &operator<<(FVector2D Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FVector Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FRotator Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FQuat Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FTransform Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	/*inline DDRecord &operator<<(FMargin Info) {
-		RecordInfo.Append(FString::Printf("( %f , %f , %f, %f )", Info.Left, Info.Top, Info.Right, Info.Bottom));
-		return *this;
-	}
-	inline DDRecord &operator<<(FAnchors Info) {
-		RecordInfo.Append(FString::Printf("( %f , %f , %f, %f )", Info.Minimum.X, Info.Minimum.Y, Info.Maximum.X, Info.Maximum.Y));
-		return *this;
-	}*/
-	inline DDRecord &operator<<(FMatrix Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FColor Info) { RecordInfo.Append(Info.ToString()); return *this; }
-	inline DDRecord &operator<<(FLinearColor Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	//ÖØĞ´²Ù×÷·û<<
+	inline DDRecord& operator<<(FString Info) { RecordInfo.Append(Info); return *this; }
+	inline DDRecord& operator<<(FName Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FText Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(const char* Info) { RecordInfo += Info; return *this; }
+	inline DDRecord& operator<<(const char Info) { RecordInfo.AppendChar(Info); return *this; }
+	inline DDRecord& operator<<(int32 Info) { RecordInfo.Append(FString::FromInt(Info)); return *this; }
+	inline DDRecord& operator<<(float Info) { RecordInfo.Append(FString::SanitizeFloat(Info)); return *this; }
+	inline DDRecord& operator<<(double Info) { RecordInfo.Append(FString::SanitizeFloat(Info)); return *this; }
+	inline DDRecord& operator<<(bool Info) { RecordInfo.Append(Info ? FString("true") : FString("false")); return *this; }
+	inline DDRecord& operator<<(FVector2D Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FVector Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FRotator Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FQuat Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FTransform Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FMatrix Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FColor Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FLinearColor Info) { RecordInfo.Append(Info.ToString()); return *this; }
+	inline DDRecord& operator<<(FMargin Info) { RecordInfo.Append((FString::SanitizeFloat(Info.Left) + FString(" , ") + FString::SanitizeFloat(Info.Top) + FString(" , ") + FString::SanitizeFloat(Info.Right) + FString(" , ") + FString::SanitizeFloat(Info.Bottom))); return *this; }
 
-	//è¾“å‡º
+	//Êä³ö
 	inline void operator<<(DDRecord& Record) { Record.Output(); }
 };
+
+
+//DDRecord::Get() << FString("sfdewhe") << FName << int << float << DDRecord::Get();
 
 
 #pragma endregion
@@ -128,11 +127,11 @@ public:
 
 #pragma region LifeTimePart
 
-//BaseObjectç”Ÿå‘½å‘¨æœŸ
+//BaseObjectÉúÃüÖÜÆÚ
 UENUM()
 enum class EBaseObjectLife : uint8
 {
-	None = 0,//åˆå§‹åŒ–çš„çŠ¶æ€
+	None = 0, //³õÊ¼»¯×´Ì¬
 	Init,
 	Loading,
 	Register,
@@ -142,100 +141,110 @@ enum class EBaseObjectLife : uint8
 	UnLoading
 };
 
-//BaseObjectç”Ÿå‘½å‘¨æœŸ
+
+//BaseObjectÉúÃüÖÜÆÚ×´Ì¬
 UENUM()
 enum class EBaseObjectState : uint8
 {
-	Active = 0, //æ¿€æ´»è¿›ç¨‹
-	Stable,     //ç¨³å®šè¿›ç¨‹
-	Destroy     //é”€æ¯è¿›ç¨‹
+	Active = 0, //¼¤»î
+	Stable,     //ÎÈ¶¨
+	Destroy     //Ïú»Ù
 };
 
 #pragma endregion
+
 
 #pragma region ReflectPart
 
-//é€šä¿¡åè®®,åªç”¨äºå¯¹è±¡é€šä¿¡
+//¶ÔÏóµ÷ÓÃĞ­Òé
 UENUM()
-enum class EAgreementType : uint8 {
-	SelfObject,        //ç»™ä¼ å…¥çš„å¯¹è±¡é€šä¿¡
-	OtherObject,       //ç»™ä¼ å…¥çš„å¯¹è±¡ä¹‹å¤–çš„å¯¹è±¡é€šä¿¡
-	ClassOtherObject,  //ç»™ä¼ å…¥çš„å¯¹è±¡çš„ç›¸åŒç±»çš„å…¶ä»–å¯¹è±¡é€šä¿¡,è°ƒç”¨è¿™ä¸ªæ–¹æ³•è¦ç¡®ä¿ä¼ è¿‡æ¥çš„å¯¹è±¡éƒ½æ˜¯åŒä¸€ç±»çš„,å¦‚æœä¸åŒç±»å°±å¤šæ¬¡é€šä¿¡
-	SelfClass,         //ç»™è¿™ä¸ªç±»çš„å¯¹è±¡é€šä¿¡
-	OtherClass,        //ç»™è¿™ä¸ªç±»ä¹‹å¤–çš„ç±»é€šä¿¡
-	All                //ç»™æ‰€æœ‰çš„å¯¹è±¡é€šä¿¡
+enum class EAgreementType : uint8
+{
+	SelfObject,        //¸ø´«ÈëµÄ¶ÔÏóÍ¨ĞÅ
+	OtherObject,       //¸ø´«ÈëµÄ¶ÔÏóÖ®ÍâµÄ¶ÔÏóÍ¨ĞÅ
+	ClassOtherObject,  //¸ø´«ÈëµÄ¶ÔÏóµÄÏàÍ¬ÀàµÄÆäËû¶ÔÏóÍ¨ĞÅ,µ÷ÓÃÕâ¸ö·½·¨ÒªÈ·±£´«¹ıÀ´µÄ¶ÔÏó¶¼ÊÇÍ¬Ò»ÀàµÄ,Èç¹û²»Í¬Àà¾Í¶à´ÎÍ¨ĞÅ
+	SelfClass,         //¸øÕâ¸öÀàµÄ¶ÔÏóÍ¨ĞÅ
+	OtherClass,        //¸øÕâ¸öÀàÖ®ÍâµÄÀàÍ¨ĞÅ
+	All                //¸øËùÓĞµÄ¶ÔÏóÍ¨ĞÅ
 };
 
-//è°ƒç”¨ç»“æœ,é¡¹ç›®å¼€å‘æ—¶è¯·ç¡®ä¿æ¯æ¬¡éƒ½èƒ½è°ƒç”¨æˆåŠŸ
+
+//µ÷ÓÃ½á¹û,ÏîÄ¿¿ª·¢Ê±ÇëÈ·±£Ã¿´Î¶¼ÄÜµ÷ÓÃ³É¹¦
 UENUM()
 enum class ECallResult : uint8
 {
-	NoModule = 0,     //å¦‚æœä»€ä¹ˆéƒ½æ²¡æœ‰æ”¹å˜è¯´æ˜æ²¡æœ‰å¯¹åº”æ¨¡ç»„
-	LackObject,  //ç¼ºå¤±å¯¹è±¡
-	NoFunction,  //æ²¡æœ‰å¯¹åº”æ–¹æ³•
-	Succeed      //æˆåŠŸè°ƒç”¨
+	NoModule = 0, //È±Ê§Ä£×é
+	LackObject,   //È±Ê§²¿·Ö¶ÔÏó
+	NoFunction,   //È±Ê§·½·¨
+	Succeed       //µ÷ÓÃ³É¹¦
 };
 
-//æ¶ˆæ¯é€šä¿¡æœºåˆ¶
+//Í¨ĞÅ²ÎÊı½á¹¹Ìå»ùÀà
 struct DDParam
 {
-
 public:
 
-	//å›è°ƒçš„ç»“æœ
+	//µ÷ÓÃ½á¹û
 	ECallResult CallResult;
 
-	//å‚æ•°æŒ‡é’ˆ
+	//²ÎÊıÖ¸Õë
 	void* ParamPtr;
 };
 
-
+//Í¨ĞÅĞ­Òé, Module·½·¨
 struct DDModuleAgreement
 {
-
 public:
-	//æ¨¡ç»„å¯¹è±¡
+
+	//Ä£×éID
 	int32 ModuleIndex;
-	//æ–¹æ³•å
+
+	//·½·¨Ãû
 	FName FunctionName;
+
 };
 
-
-
+//Í¨ĞÅĞ­Òé, DDOO·½·¨
 struct DDObjectAgreement
 {
-
 public:
-	//æ¨¡ç»„å¯¹è±¡
+
+	//Ä£×éID
 	int32 ModuleIndex;
-	//åè®®ç±»å‹
+
+	//Ğ­ÒéÀàĞÍ
 	EAgreementType AgreementType;
-	//å¯¹è±¡ç»„
+
+	//¶ÔÏó×éÃû
 	TArray<FName> ObjectGroup;
-	//æ–¹æ³•å
+
+	//·½·¨Ãû
 	FName FunctionName;
 };
 
+
+
 #pragma endregion
-
-#pragma region MessageEventPart
-
 
 
 #pragma region DDAnyFun
 
-//ä»»æ„æ–¹æ³•ç»“æ„ä½“
-struct DDAnyFun {
-	struct BaseFun {
+//´æ´¢ÈÎÒâÀàĞÍ·½·¨½á¹¹Ìå
+struct DDAnyFun
+{
+	struct BaseFun
+	{
 	public:
-		virtual ~BaseFun() {};
+		virtual ~BaseFun() {}
 	};
 	template<typename RetType, typename... VarTypes>
-	struct ValFun : public BaseFun {
+	struct ValFun : public BaseFun
+	{
 	public:
 		TFunction<RetType(VarTypes...)> TarFun;
 		ValFun(const TFunction<RetType(VarTypes...)> InsFun) : TarFun(InsFun) {}
-		RetType Execute(VarTypes... Params) {
+		RetType Execute(VarTypes... Params)
+		{
 			return TarFun(Params...);
 		}
 	};
@@ -246,7 +255,8 @@ public:
 	DDAnyFun(const TFunction<RetType(VarTypes...)> InsFun) : FunPtr(new ValFun<RetType, VarTypes...>(InsFun)) {}
 	~DDAnyFun() { delete FunPtr; }
 	template<typename RetType, typename... VarTypes>
-	RetType	Execute(VarTypes... Params) {
+	RetType Execute(VarTypes... Params)
+	{
 		ValFun<RetType, VarTypes...>* SubFunPtr = static_cast<ValFun<RetType, VarTypes...>*>(FunPtr);
 		return SubFunPtr->Execute(Params...);
 	}
@@ -258,78 +268,86 @@ public:
 	}
 };
 
-#pragma endregion 
+#pragma endregion
 
 #pragma region DDMsgNode
-//æ–¹æ³•èŠ‚ç‚¹
+
+//ÊÂ¼ş½Úµã
 struct DDMsgNode
 {
-	//è¢«è°ƒç”¨æ¥å£æ•°é‡
+	//±»µ÷ÓÃµÄ½Ó¿ÚÊıÁ¿
 	int32 CallCount;
-	//æ–¹æ³•åˆ—è¡¨
+	//·½·¨ÁĞ±í
 	TMap<int32, DDAnyFun*> FunQuene;
-	//æ³¨å†Œæ–¹æ³•
+	//×¢²á·½·¨
 	template<typename RetType, typename... VarTypes>
 	int32 RegisterFun(TFunction<RetType(VarTypes...)> InsFun);
-	//æ³¨é”€æ–¹æ³•
+	//×¢Ïú·½·¨
 	void UnRegisterFun(int32 FunID)
 	{
-		//ç›´æ¥ä»åºåˆ—é‡Œç§»é™¤å¯¹è±¡å³å¯
+		//´ÓÁĞ±íÒÆ³ı¶ÔÏó
 		DDAnyFun* DesPtr = *FunQuene.Find(FunID);
 		FunQuene.Remove(FunID);
 		delete DesPtr;
 	}
-	//æ‰§è¡Œæ–¹æ³•
+	//Çå¿Õ½Úµã
+	void ClearNode()
+	{
+		for (TMap<int32, DDAnyFun*>::TIterator It(FunQuene); It; ++It)
+		{
+			delete It.Value();
+		}
+	}
+	//Ö´ĞĞ·½·¨
 	template<typename RetType, typename... VarTypes>
 	RetType Execute(VarTypes... Params);
-	//åˆ¤æ–­æ˜¯å¦ç»‘å®šæœ‰å‡½æ•°
+	//ÅĞ¶ÏÊÇ·ñÓĞ°ó¶¨µÄº¯Êı
 	bool IsBound() { return FunQuene.Num() > 0; }
-	//å¦‚æœç»‘å®šæœ‰å‡½æ•°å°±æ‰§è¡Œ
+	//Èç¹ûÓĞ°ó¶¨º¯Êı¾ÍÈ¥Ö´ĞĞ
 	template<typename RetType, typename... VarTypes>
-	bool ExecuteIsBound(VarTypes... Params);
-	//æ„é€ å‡½æ•°
-	DDMsgNode() {
-		//åˆå§‹åŒ–ä¸º0, æ‰‹åŠ¨æ·»åŠ è®¡æ•°
-		CallCount = 0;
-	}
+	bool ExecuteIfBound(VarTypes... Params);
+	//¹¹Ôìº¯Êı, ³õÊ¼»¯CallCountÎª0
+	DDMsgNode() : CallCount(0) {}
 };
-
 
 template<typename RetType, typename... VarTypes>
 int32 DDMsgNode::RegisterFun(TFunction<RetType(VarTypes...)> InsFun)
 {
-	//è·å–æ–¹æ³•åºåˆ—é‡Œæ‰€æœ‰é”®
+	//»ñÈ¡·½·¨ĞòÁĞÀïµÄËùÓĞÏÂ±ê
 	TArray<int32> FunKeyQuene;
 	FunQuene.GenerateKeyArray(FunKeyQuene);
-	//æŸ¥æ‰¾ä¸€ä¸ªæ²¡æœ‰è¢«æ³¨å†Œçš„æ–°çš„é”®
+	//»ñÈ¡ĞÂÏÂ±ê
 	int32 NewID;
 	for (int32 i = FunKeyQuene.Num(); i >= 0; --i)
-		if (!FunKeyQuene.Contains(i)) {
+	{
+		if (!FunKeyQuene.Contains(i))
+		{
 			NewID = i;
 			break;
 		}
-	//å°†æ–°çš„æ–¹æ³•æ·»åŠ åˆ°æ–¹æ³•åºåˆ—
+	}
+	//½«ĞÂ·½·¨Ìí¼Óµ½½Úµã
 	FunQuene.Add(NewID, new DDAnyFun(InsFun));
-	//è¿”å›é”®å€¼
 	return NewID;
 }
-
 
 template<typename RetType, typename... VarTypes>
 RetType DDMsgNode::Execute(VarTypes... Params)
 {
+	//±éÀúÖ´ĞĞµÚ¶ş¸öµ½×îºóÒ»¸ö·½·¨
 	TMap<int32, DDAnyFun*>::TIterator It(FunQuene);
 	++It;
 	for (; It; ++It)
 	{
 		It.Value()->Execute<RetType, VarTypes...>(Params...);
 	}
+	//»ñÈ¡ĞòÁĞµÚÒ»¸ö·½·¨
 	TMap<int32, DDAnyFun*>::TIterator IBegin(FunQuene);
 	return IBegin.Value()->Execute<RetType, VarTypes...>(Params...);
 }
 
 template<typename RetType, typename... VarTypes>
-bool DDMsgNode::ExecuteIsBound(VarTypes... Params)
+bool DDMsgNode::ExecuteIfBound(VarTypes... Params)
 {
 	if (!IsBound()) return false;
 	for (TMap<int32, DDAnyFun*>::TIterator It(FunQuene); It; ++It)
@@ -341,43 +359,43 @@ bool DDMsgNode::ExecuteIsBound(VarTypes... Params)
 
 #pragma endregion
 
-#pragma region DDMsgHandle
 
+#pragma region DDCallHandle
 
-struct DDMsgQueue;
+struct DDMsgQuene;
 
-
-//è¿”å›çš„æ¶ˆæ¯å¥æŸ„
+//µ÷ÓÃ¾ä±ú
 template<typename RetType, typename... VarTypes>
 struct DDCallHandle
 {
-	//æ¶ˆæ¯é˜Ÿåˆ—
-	DDMsgQueue* MsgQuene;
-	//è°ƒç”¨åå­—
+	//ÊÂ¼ş¶ÓÁĞ
+	DDMsgQuene* MsgQuene;
+	//½ÚµãÃû, µ÷ÓÃÃû
 	FName CallName;
-	//æ˜¯å¦æœ‰æ•ˆ
+	//ÊÇ·ñÓĞĞ§, ÓÃÓÚÖØĞ´µÈÓÚ²Ù×÷·û±£´æ×´Ì¬
 	TSharedPtr<bool> IsActived;
-	//æ‰§è¡Œæ¥å£
+	//Ö´ĞĞ·½·¨
 	RetType Execute(VarTypes... Params);
-	//æ˜¯å¦å·²ç»ç»‘å®š
+	//ÊÇ·ñÒÑ¾­°ó¶¨
 	bool IsBound();
-	//å¦‚æœç»‘å®šå°±æ‰§è¡Œ
+	//Èç¹û°ó¶¨¾ÍÖ´ĞĞ
 	bool ExecuteIfBound(VarTypes... Params);
-	//æ³¨é”€æ¥å£
+	//×¢Ïúµ÷ÓÃ½Ó¿Ú
 	void UnRegister();
-	//æ— å‚æ„é€ 
-	DDCallHandle() { }
-	//æ„é€ å‡½æ•°
-	DDCallHandle(DDMsgQueue* MQ, FName CN) {
+	//ÎŞ²Î¹¹Ôìº¯Êı
+	DDCallHandle() {}
+	//¹¹Ôìº¯Êı
+	DDCallHandle(DDMsgQuene* MQ, FName CN) {
 		MsgQuene = MQ;
 		CallName = CN;
-		//æ„å»ºæ—¶çŠ¶æ€ä¸ºæ¿€æ´»çŠ¶æ€
+		//¹¹½¨Ê±×´Ì¬Îª¼¤»î×´Ì¬
 		IsActived = MakeShareable<bool>(new bool(true));
 	}
-	//é‡å†™èµ‹å€¼
+	//ÖØĞ´²Ù×÷·û
 	DDCallHandle<RetType, VarTypes...>& operator=(const DDCallHandle<RetType, VarTypes...>& Other)
 	{
-		if (this == &Other) return *this;
+		if (this == &Other)
+			return *this;
 		MsgQuene = Other.MsgQuene;
 		CallName = Other.CallName;
 		IsActived = Other.IsActived;
@@ -385,27 +403,33 @@ struct DDCallHandle
 	}
 };
 
+
+template<typename RetType, typename... VarTypes>
+void DDCallHandle<RetType, VarTypes...>::UnRegister()
+{
+	if (*IsActived.Get())
+		MsgQuene->UnRegisterCallPort(CallName);
+	*IsActived.Get() = false;
+}
+
 template<typename RetType, typename... VarTypes>
 bool DDCallHandle<RetType, VarTypes...>::ExecuteIfBound(VarTypes... Params)
 {
-	if (!IsBound()) return false;
+	if (!IsBound() || !*IsActived.Get())
+		return false;
 	MsgQuene->Execute<RetType, VarTypes...>(CallName, Params...);
 	return true;
 }
 
 template<typename RetType, typename... VarTypes>
-inline void DDCallHandle<RetType, VarTypes...>::UnRegister()
-{
-	if (*IsActived.Get()) MsgQuene->UnRegisterCallPort(CallName);
-	*IsActived.Get() = false;
-}
-
-template<typename RetType, typename... VarTypes>
 bool DDCallHandle<RetType, VarTypes...>::IsBound()
 {
+	if (!*IsActived.Get())
+		return false;
 	return MsgQuene->IsBound(CallName);
 }
 
+//ÔËĞĞExecuteÇ°±ØĞëÔËĞĞIsBound()º¯ÊıÅĞ¶ÏÊÇ·ñÓĞ°ó¶¨
 template<typename RetType, typename... VarTypes>
 RetType DDCallHandle<RetType, VarTypes...>::Execute(VarTypes... Params)
 {
@@ -414,144 +438,131 @@ RetType DDCallHandle<RetType, VarTypes...>::Execute(VarTypes... Params)
 
 #pragma endregion
 
-#pragma region DDMsgQueue
+#pragma region DDMsgQuene
 
 struct DDFunHandle;
 
-//æ¶ˆæ¯é˜Ÿåˆ—
-struct DDMsgQueue {
-	//èŠ‚ç‚¹é˜Ÿåˆ—
+//ÊÂ¼ş¶ÓÁĞ
+struct DDMsgQuene
+{
+	//½ÚµãĞòÁĞ
 	TMap<FName, DDMsgNode> MsgQuene;
-	//æ³¨å†Œè°ƒç”¨æ¥å£
+	//×¢²áµ÷ÓÃ½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDCallHandle<RetType, VarTypes...> RegisterCallPort(FName CallName);
-	//æ³¨å†Œè°ƒç”¨æ–¹æ³•
+	//×¢²á·½·¨½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	DDFunHandle RegisterFunPort(FName CallName, TFunction<RetType(VarTypes...)> InsFun);
-	//ç§»é™¤è°ƒç”¨æ¥å£
+	//×¢Ïúµ÷ÓÃ½Ó¿Ú
 	void UnRegisterCallPort(FName CallName)
 	{
-		//è®©å¯¹åº”çš„æ¥å£è®¡æ•°å™¨å‡ä¸€, å¦‚æœè®¡æ•°å™¨å°äºç­‰äº0, å°±ç§»é™¤è°ƒç”¨æ¥å£
-		MsgQuene.Find(CallName)->CallCount--;
-		if (MsgQuene.Find(CallName)->CallCount <= 0)
+		if (!MsgQuene.Contains(CallName))
+			return;
+		//»ñÈ¡ÊÂ¼ş½Úµã
+		DDMsgNode* MsgNode = MsgQuene.Find(CallName);
+		//ÈÃ¶ÔÓ¦µÄ½Úµãµ÷ÓÃ¼ÆÊıÆ÷¼õÒ», Èç¹û¼ÆÊıÆ÷Ğ¡ÓÚµÈÓÚ0, ¾ÍÒÆ³ıµ÷ÓÃ½Ó¿Ú
+		MsgNode->CallCount--;
+		if (MsgNode->CallCount <= 0)
+		{
+			MsgNode->ClearNode();
 			MsgQuene.Remove(CallName);
+		}
 	}
-	//ç§»é™¤è°ƒç”¨æ–¹æ³•
+	//×¢Ïú·½·¨½Ó¿Ú
 	void UnRegisterFunPort(FName CallName, int32 FunID)
 	{
-		MsgQuene.Find(CallName)->UnRegisterFun(FunID);
+		if (MsgQuene.Contains(CallName))
+			MsgQuene.Find(CallName)->UnRegisterFun(FunID);
 	}
-	//æ‰§è¡Œæ–¹æ³•æ¥å£
+	//Ö´ĞĞ·½·¨½Ó¿Ú
 	template<typename RetType, typename... VarTypes>
 	RetType Execute(FName CallName, VarTypes... Params);
-	//æ˜¯å¦å·²ç»ç»‘å®šæ–¹æ³•
-	bool IsBound(FName CallName) { return MsgQuene.Find(CallName)->IsBound(); };
+	//ÊÇ·ñÒÑ¾­°ó¶¨·½·¨
+	bool IsBound(FName CallName) { return MsgQuene.Find(CallName)->IsBound(); }
 };
-
-
 
 template<typename RetType, typename... VarTypes>
 DDCallHandle<RetType, VarTypes...>
-DDMsgQueue::RegisterCallPort(FName CallName)
+DDMsgQuene::RegisterCallPort(FName CallName)
 {
-	//å¦‚æœå·²ç»å­˜åœ¨å¯¹åº”è°ƒç”¨æ¥å£, è®¾ç½®æ¥å£è°ƒç”¨è®¡æ•°å™¨åŠ ä¸€
+	//Èç¹ûÒÑ¾­´æÔÚ¶ÔÓ¦CallNameµÄµ÷ÓÃ½Ó¿Ú, ¾Í°Ñµ÷ÓÃ¼ÆÊıÆ÷+1
 	if (MsgQuene.Contains(CallName))
 	{
 		MsgQuene.Find(CallName)->CallCount++;
 	}
 	else
 	{
-		//åˆ›å»ºæ–°çš„è°ƒç”¨æ¥å£å¹¶ä¸”æ·»åŠ åˆ°é˜Ÿåˆ—
+		//´´½¨ĞÂµÄÊÂ¼ş½Úµã²¢ÇÒÌí¼Óµ½¶ÓÁĞ
 		MsgQuene.Add(CallName, DDMsgNode());
-		//è®¡æ•°åŠ ä¸€
+		//¼ÆÊıÆ÷¼Ó1
 		MsgQuene.Find(CallName)->CallCount++;
 	}
-	//è¿”å›è°ƒç”¨æ¥å£å¥æŸ„
+	//·µ»Øµ÷ÓÃ¾ä±ú
 	return DDCallHandle<RetType, VarTypes...>(this, CallName);
 }
 
 template<typename RetType, typename... VarTypes>
-DDFunHandle DDMsgQueue::RegisterFunPort(FName CallName, TFunction<RetType(VarTypes...)> InsFun)
+DDFunHandle DDMsgQuene::RegisterFunPort(FName CallName, TFunction<RetType(VarTypes...)> InsFun)
 {
-	//å¾—åˆ°çš„ID
+	//»ñÈ¡ĞÂµÄ·½·¨ÏÂ±ê
 	int32 FunID;
-	//å¦‚æœå·²ç»å­˜åœ¨å¯¹åº”æ¥å£
-	if (MsgQuene.Contains(CallName))
+	//Èç¹û²»´æÔÚCallName¶ÔÓ¦µÄ½Úµã
+	if (!MsgQuene.Contains(CallName))
 	{
-		//ç›´æ¥å°†TFunctionæ³¨å†Œè¿›æ¥å£
-		FunID = MsgQuene.Find(CallName)->RegisterFun(InsFun);
-	}
-	else
-	{
-		//å¦‚æœæ²¡æœ‰æ¥å£, å…ˆåˆ›å»ºæ¥å£
+		//´´½¨ĞÂµÄÊÂ¼ş½Úµã²¢ÇÒÌí¼Óµ½¶ÓÁĞ
 		MsgQuene.Add(CallName, DDMsgNode());
-		//å†å°†TFunctionæ³¨å†Œè¿›æ¥å£
-		FunID = MsgQuene.Find(CallName)->RegisterFun(InsFun);
 	}
-	//è¿”å›æ–¹æ³•å¥æŸ„,ç”¨äºåœ¨æ³¨é”€æ—¶å–æ¶ˆæ³¨å†Œ
+	//Ö±½Ó½«ĞÂµÄ·½·¨×¢²áµ½½Úµã
+	FunID = MsgQuene.Find(CallName)->RegisterFun(InsFun);
+	//·µ»Ø·½·¨¾ä±ú
 	return DDFunHandle(this, CallName, FunID);
 }
 
 template<typename RetType, typename... VarTypes>
-RetType DDMsgQueue::Execute(FName CallName, VarTypes... Params)
+RetType DDMsgQuene::Execute(FName CallName, VarTypes... Params)
 {
 	return MsgQuene.Find(CallName)->Execute<RetType, VarTypes...>(Params...);
 }
-
-//void DDMsgQueue::UnRegisterCallPort(FName CallName)
-//{
-//	//è®©å¯¹åº”çš„æ¥å£è®¡æ•°å™¨å‡ä¸€, å¦‚æœè®¡æ•°å™¨å°äºç­‰äº0, å°±ç§»é™¤è°ƒç”¨æ¥å£
-//	MsgQuene.Find(CallName)->CallCount--;
-//	if (MsgQuene.Find(CallName)->CallCount <= 0)
-//		MsgQuene.Remove(CallName);
-//}
-//
-//void DDMsgQueue::UnRegisterFunPort(FName CallName, int32 FunID)
-//{
-//	MsgQuene.Find(CallName)->UnRegisterFun(FunID);
-//}
-
-//bool DDMsgQueue::IsBound(FName CallName)
-//{
-//	return MsgQuene.Find(CallName)->IsBound();
-//}
 
 #pragma endregion
 
 #pragma region DDFunHandle
 
-//è¿”å›çš„æ–¹æ³•å¥æŸ„
+//·½·¨¾ä±ú
 struct DDFunHandle
 {
-	//æ¶ˆæ¯é˜Ÿåˆ—
-	DDMsgQueue* MsgQuene;
-	//è°ƒç”¨åå­—
+	//ÏûÏ¢¶ÓÁĞ
+	DDMsgQuene* MsgQuene;
+	//µ÷ÓÃÃû×Ö
 	FName CallName;
-	//æ–¹æ³•ID
+	//·½·¨ID
 	int32 FunID;
-	//æ˜¯å¦è¿˜æœ‰æ•ˆ
+	//ÊÇ·ñÓĞĞ§
 	TSharedPtr<bool> IsActived;
-	//æ³¨é”€æ–¹æ³•
+	//×¢Ïú·½·¨
 	void UnRegister()
 	{
-		if (*IsActived.Get()) MsgQuene->UnRegisterFunPort(CallName, FunID);
-		//è®¾ç½®æˆå¤±æ´»çŠ¶æ€
+		if (*IsActived.Get())
+			MsgQuene->UnRegisterFunPort(CallName, FunID);
+		//ÉèÖÃÊ§»î
 		*IsActived.Get() = false;
 	}
-	//æ— å‚æ„é€ 
+	//ÎŞ²Î¹¹Ôìº¯Êı
 	DDFunHandle() {}
-	//æ„é€ å‡½æ•°
-	DDFunHandle(DDMsgQueue* MQ, FName CN, int32 FI) {
+	//ÓĞ²Î¹¹Ôìº¯Êı
+	DDFunHandle(DDMsgQuene* MQ, FName CN, int32 FI)
+	{
 		MsgQuene = MQ;
 		CallName = CN;
 		FunID = FI;
-		//æ„å»ºæ—¶æ˜¯æ¿€æ´»çŠ¶æ€
+		//ÉèÖÃ×´Ì¬Îª¼¤»î
 		IsActived = MakeShareable<bool>(new bool(true));
 	}
-	//é‡å†™èµ‹å€¼
+	//ÖØĞ´=²Ù×÷·û
 	DDFunHandle& operator=(const DDFunHandle& Other)
 	{
-		if (this == &Other) return *this;
+		if (this == &Other)
+			return *this;
 		MsgQuene = Other.MsgQuene;
 		CallName = Other.CallName;
 		FunID = Other.FunID;
@@ -563,195 +574,23 @@ struct DDFunHandle
 #pragma endregion
 
 
-#pragma endregion
-
-#pragma region WealthPart
-
-
-UENUM()
-enum class EWealthType : uint8
-{
-	Object,
-	Actor,
-	Widget
-};
-
-USTRUCT()
-struct FObjectWealthEntry
-{
-	GENERATED_BODY()
-
-public:
-
-	//å¯¹èµ„æºçš„å”¯ä¸€æ ‡è¯†,é€šè¿‡æ ‡è¯†è·å–æŒ‡å®šçš„èµ„æº
-	UPROPERTY(EditAnywhere)
-		FName WealthName;
-	//èµ„æºçš„ç±»åˆ«, ç›¸åŒå±æ€§çš„èµ„æºæ”¾åœ¨ä¸€èµ·
-	UPROPERTY(EditAnywhere)
-		FName WealthKind;
-	//èµ„æºé“¾æ¥
-	UPROPERTY(EditAnywhere)
-		FStringAssetReference WealthPath;
-	//åŠ è½½å‡ºæ¥çš„å¯¹è±¡
-	UPROPERTY()
-		UObject* WealthObject;
-};
-
-USTRUCT()
-struct FClassWealthEntry
-{
-	GENERATED_BODY()
-
-public:
-
-	//èµ„æºç±»å‹
-	UPROPERTY(EditAnywhere)
-		EWealthType WealthType;
-	//å¯¹èµ„æºçš„å”¯ä¸€æ ‡è¯†,é€šè¿‡æ ‡è¯†è·å–æŒ‡å®šçš„èµ„æº
-	UPROPERTY(EditAnywhere)
-		FName WealthName;
-	//èµ„æºçš„ç±»åˆ«, ç›¸åŒå±æ€§çš„èµ„æºæ”¾åœ¨ä¸€èµ·
-	UPROPERTY(EditAnywhere)
-		FName WealthKind;
-	//èµ„æºé“¾æ¥
-	UPROPERTY(EditAnywhere)
-		TSoftClassPtr<UObject> WealthPtr;
-	//åŠ è½½å‡ºæ¥çš„å¯¹è±¡
-	UPROPERTY()
-		UClass* WealthClass;
-};
-
-USTRUCT()
-struct FWealthItem
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-		FName ObjectName;
-	UPROPERTY(EditAnywhere)
-		FName ClassName;
-};
-
-USTRUCT()
-struct FWealthObject : public FWealthItem
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<UDDObject> WealthClass;
-};
-
-USTRUCT()
-struct FWealthActor : public FWealthItem
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<ADDActor> WealthClass;
-
-	UPROPERTY(EditAnywhere)
-		FTransform Transform;
-};
-
-USTRUCT()
-struct FWealthWidget : public FWealthItem
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<UDDUserWidget> WealthClass;
-
-};
-
-USTRUCT()
-struct FWealthURL
-{
-	GENERATED_BODY()
-
-public:
-
-	UPROPERTY(EditAnywhere)
-		FName WealthName;
-
-	UPROPERTY(EditAnywhere)
-		FName WealthKind;
-
-	UPROPERTY(EditAnywhere)
-		FStringAssetReference WealthPath;
-
-	//èµ„æºé“¾æ¥
-	UPROPERTY(EditAnywhere)
-		TSoftClassPtr<UObject> WealthPtr;
-};
-
-
-UCLASS()
-class DATADRIVEN_API UWealthData : public UDataAsset
-{
-	GENERATED_BODY()
-
-public:
-
-	//æ¨¡ç»„åå­—, è¿™ä¸ªDataAssetä¸‹æ‰€æœ‰è‡ªåŠ¨ç”Ÿæˆçš„èµ„æºéƒ½è¦æ±‚ä½äºè¿™ä¸ªæ¨¡ç»„ä¸‹, 
-	//å¦‚æœä¸ºç©ºåˆ™ç”Ÿæˆåœ¨å¼•ç”¨è¿™ä¸ªèµ„æºçš„æ¨¡ç»„ä¸‹, å¦‚æœä¸æ˜¯å¤šä¸ªæ¨¡ç»„å¼•ç”¨çš„è¯æœ€å¥½å¡«å…¥å†…å®¹, é¿å…æ··ä¹±
-	UPROPERTY(EditAnywhere)
-		FName ModuleName;
-
-	//è‡ªåŠ¨ç”Ÿæˆçš„Actor
-	UPROPERTY(EditAnywhere)
-		TArray<FWealthObject> AutoObjectData;
-
-	//è‡ªåŠ¨åŠ è½½çš„Object
-	UPROPERTY(EditAnywhere)
-		TArray<FWealthActor> AutoActorData;
-
-	//è‡ªåŠ¨åŠ è½½çš„Widget
-	UPROPERTY(EditAnywhere)
-		TArray<FWealthWidget> AutoWidgetData;
-
-	//DDèµ„æºé“¾æ¥é›†åˆ
-	UPROPERTY(EditAnywhere)
-		TArray<FClassWealthEntry> ClassWealthData;
-
-	//æ™®é€šèµ„æºé“¾æ¥é›†åˆ
-	UPROPERTY(EditAnywhere)
-		TArray<FObjectWealthEntry> ObjectWealthData;
-
-	//èµ„æºé“¾æ¥é›†åˆ
-	UPROPERTY(EditAnywhere)
-		TArray<FWealthURL> WealthURL;
-
-};
-
-#pragma endregion
-
-
 #pragma region Coroutine
 
-//åˆ¤æ–­æ¡ä»¶å§”æ‰˜
+//ÅĞ¶ÏÌõ¼şÎ¯ÍĞ
 DECLARE_DELEGATE_RetVal(bool, FCoroCondition)
 
 struct DDCoroNode
 {
-	//æ¿€æ´»çŠ¶æ€
+	//¼¤»î×´Ì¬
 	bool IsActive;
-	//å‰©ä½™æ—¶é—´æˆ–è€…å¸§
+	//Ê£ÓàÊ±¼ä, Ê£ÓàÖ¡
 	float RemainTime;
-	//æ¡ä»¶å§”æ‰˜æ–¹æ³•
+	//Ìõ¼şÎ¯ÍĞ
 	FCoroCondition ConditionDele;
-	//è¡¨è¾¾å¼
-	TFunction<bool()> ConditionFun;
-	//æ„é€ å‡½æ•°, é»˜è®¤ä¸ºæœªæ¿€æ´»çŠ¶æ€
+	//¹¹Ôìº¯Êı
 	DDCoroNode() : IsActive(false) {}
-	//å¸§æ›´æ–°, ä¼ å…¥é—´éš”å¸§
+
+	//ÑÓ³Ù¶àÉÙÖ¡¼ÌĞøÖ´ĞĞ
 	bool UpdateOperate(int32 SpaceTick)
 	{
 		if (!IsActive)
@@ -772,7 +611,8 @@ struct DDCoroNode
 			}
 		}
 	}
-	//æ—¶é—´æ›´æ–°, ä¼ å…¥æ¯å¸§æ—¶é—´é—´éš”å’Œé—´éš”æ—¶é—´
+
+	//ÑÓ³ÙÃëÌõ¼ş ,Ö¡¸üĞÂº¯Êı, ·µ»Øtrue, ¾Í¼ÌĞø¹ÒÆğ, ·µ»Øfalse, Ö´ĞĞºóĞø´úÂë
 	bool UpdateOperate(float DeltaTime, float SpaceTime)
 	{
 		if (!IsActive)
@@ -793,7 +633,8 @@ struct DDCoroNode
 			}
 		}
 	}
-	//å˜é‡æ›´æ–°
+
+	//bool±äÁ¿Ö¸Õë¹ÒÆğ, ±äÁ¿ÎªtrueÔò¼ÌĞø¹ÒÆğ, ÎªfalseÔòÖ´ĞĞºóĞø´úÂë
 	bool UpdateOperate(bool* Condition)
 	{
 		if (!IsActive)
@@ -804,9 +645,7 @@ struct DDCoroNode
 		else
 		{
 			if (*Condition)
-			{
 				return true;
-			}
 			else
 			{
 				IsActive = false;
@@ -814,13 +653,15 @@ struct DDCoroNode
 			}
 		}
 	}
-	//æ–¹æ³•æ›´æ–° : å‡½æ•°
+
+	//Î¯ÍĞº¯Êı¹ÒÆğ, º¯Êı·µ»ØtrueÔò¼ÌĞø¹ÒÆğ, ·µ»ØfalseÔòÖ´ĞĞºóĞø´úÂë
 	template<typename UserClass>
 	bool UpdateOperate(UserClass* UserObj, typename FCoroCondition::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
 	{
 		if (!IsActive)
 		{
-			if (!ConditionDele.IsBound()) ConditionDele.BindUObject(UserObj, InMethod);
+			if (!ConditionDele.IsBound())
+				ConditionDele.BindUObject(UserObj, InMethod);
 			IsActive = true;
 			return true;
 		}
@@ -835,18 +676,18 @@ struct DDCoroNode
 			}
 		}
 	}
-	//æ–¹æ³•æ›´æ–° : è¡¨è¾¾å¼
+
+	//lambuda±í´ïÊ½¹ÒÆğ
 	bool UpdateOperate(TFunction<bool()> InFunction)
 	{
 		if (!IsActive)
 		{
-			if (!ConditionFun) ConditionFun = InFunction;
 			IsActive = true;
 			return true;
 		}
 		else
 		{
-			if (ConditionFun())
+			if (InFunction())
 				return true;
 			else
 			{
@@ -855,54 +696,77 @@ struct DDCoroNode
 			}
 		}
 	}
-	//åœæ­¢åç¨‹
+
+	//Í£Ö¹Ğ­³Ì
 	bool UpdateOperate()
 	{
 		IsActive = false;
 		return true;
 	}
+
 };
 
 struct DDCoroTask
 {
+	//ÊÇ·ñÏú»Ù
+	bool IsDestory;
+	//¶à¸öĞ­³Ì½Úµã
 	TArray<DDCoroNode*> CoroStack;
+	//¹¹Ôìº¯Êı
 	DDCoroTask(int32 CoroCount)
 	{
+		IsDestory = false;
 		for (int i = 0; i <= CoroCount; ++i)
-			CoroStack.Add(new DDCoroNode());
+			CoroStack.Push(new DDCoroNode());
 	}
+	//Îö¹¹º¯Êı
 	virtual ~DDCoroTask()
 	{
 		for (int i = 0; i < CoroStack.Num(); ++i)
 			delete CoroStack[i];
 	}
+	//ÊµÀıÔËĞĞµÄÖ¡º¯Êı
 	virtual void Work(float DeltaTime) {}
+	//ÊÇ·ñÍê½á×´Ì¬
 	bool IsFinish()
 	{
 		bool Flag = true;
 		for (int i = 0; i < CoroStack.Num(); ++i)
-			if (CoroStack[i]->IsActive) Flag = false;
+		{
+			if (CoroStack[i]->IsActive)
+			{
+				Flag = false;
+				break;
+			}
+		}
 		return Flag;
 	}
 };
+
+#pragma endregion
+
+
+#pragma region Invoke
 
 DECLARE_DELEGATE(FDDInvokeEvent)
 
 struct DDInvokeTask
 {
-	//å¼€å§‹æš‚åœæ—¶é—´
+	//ÊÇ·ñÏú»Ù
+	bool IsDestroy;
+	//ÑÓ³ÙÖ´ĞĞµÄÊÀ½ç
 	float DelayTime;
-	//æ˜¯å¦å¾ªç¯
+	//ÊÇ·ñÑ­»·
 	bool IsRepeat;
-	//å¾ªç¯é—´éš”
+	//Ñ­»·Ê±¼ä¼ä¸ô
 	float RepeatTime;
-	//å®é™…æ‰§è¡Œæ–¹æ³•
-	FDDInvokeEvent InvokeEvent;
-	//æ˜¯å¦åœ¨å¾ªç¯é˜¶æ®µ
+	//ÊÇ·ñÔÚÑ­»·½×¶Î
 	bool IsRepeatState;
-	//è®¡æ—¶å™¨
+	//¼ÆÊ±Æ÷
 	float TimeCount;
-	//æ„é€ å‡½æ•°
+	//·½·¨Î¯ÍĞ
+	FDDInvokeEvent InvokeEvent;
+	//¹¹Ôìº¯Êı
 	DDInvokeTask(float InDelayTime, bool InIsRepeat, float InRepeatTime)
 	{
 		DelayTime = InDelayTime;
@@ -910,8 +774,9 @@ struct DDInvokeTask
 		RepeatTime = InRepeatTime;
 		IsRepeatState = false;
 		TimeCount = 0.f;
+		IsDestroy = false;
 	}
-	//å¸§æ›´æ–°å‡½æ•°, å¦‚æœç»“æŸäº†å°±ä¼šè¿”å›true
+	//Ö¡¸üĞÂ²Ù×÷º¯Êı
 	bool UpdateOperate(float DeltaSeconds)
 	{
 		TimeCount += DeltaSeconds;
@@ -939,19 +804,209 @@ struct DDInvokeTask
 	}
 };
 
+
+#pragma endregion
+
+
+#pragma region Wealth
+
+USTRUCT()
+struct FWealthItem
+{
+	GENERATED_BODY()
+
+public:
+
+	//¶ÔÏóÃû
+	UPROPERTY(EditAnywhere)
+		FName ObjectName;
+
+	//ÀàÃû
+	UPROPERTY(EditAnywhere)
+		FName ClassName;
+
+};
+
+USTRUCT()
+struct FWealthObject : public FWealthItem
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UObject> WealthClass;
+
+};
+
+USTRUCT()
+struct FWealthActor : public FWealthItem
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<AActor> WealthClass;
+
+	UPROPERTY(EditAnywhere)
+		FTransform Transform;
+
+};
+
+USTRUCT()
+struct FWealthWidget : public FWealthItem
+{
+	GENERATED_BODY()
+
+public:
+
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UUserWidget> WealthClass;
+
+};
+
+//Object×ÊÔ´½á¹¹Ìå
+USTRUCT()
+struct FObjectWealthEntry
+{
+	GENERATED_BODY()
+
+public:
+
+	//×ÊÔ´Ãû
+	UPROPERTY(EditAnywhere)
+		FName WealthName;
+
+	//×ÊÔ´ÖÖÀàÃû
+	UPROPERTY(EditAnywhere)
+		FName WealthKind;
+
+	//×ÊÔ´Á´½Ó
+	UPROPERTY(EditAnywhere)
+		FStringAssetReference WealthPath;
+
+	//¼ÓÔØ³öÀ´µÄ¶ÔÏó
+	UPROPERTY()
+		UObject* WealthObject;
+};
+
+//UClassÀàĞÍÃ¶¾Ù
+UENUM()
+enum class EWealthType : uint8 {
+	Object,
+	Actor,
+	Widget
+};
+
+//Class×ÊÔ´½á¹¹Ìå
+USTRUCT()
+struct FClassWealthEntry
+{
+	GENERATED_BODY()
+
+public:
+
+	//×ÊÔ´Àà±ğ
+	UPROPERTY(EditAnywhere)
+		EWealthType WealthType;
+
+	//×ÊÔ´Ãû
+	UPROPERTY(EditAnywhere)
+		FName WealthName;
+
+	//×ÊÔ´ÖÖÀàÃû
+	UPROPERTY(EditAnywhere)
+		FName WealthKind;
+
+	//×ÊÔ´Á´½Ó
+	UPROPERTY(EditAnywhere)
+		TSoftClassPtr<UObject> WealthPtr;
+
+	//¼ÓÔØ³öÀ´µÄ¶ÔÏó
+	UPROPERTY()
+		UClass* WealthClass;
+};
+
+//´¿»ñÈ¡Á´½Ó½á¹¹Ìå, ²»½øĞĞÍ¬Òì²½¼ÓÔØ
+USTRUCT()
+struct FWealthURL
+{
+	GENERATED_BODY()
+
+public:
+
+	//×ÊÔ´Ãû
+	UPROPERTY(EditAnywhere)
+		FName WealthName;
+
+	//×ÊÔ´ÖÖÀàÃû
+	UPROPERTY(EditAnywhere)
+		FName WealthKind;
+
+	//×ÊÔ´Á´½Ó
+	UPROPERTY(EditAnywhere)
+		FStringAssetReference WealthPath;
+
+	//×ÊÔ´Á´½Ó
+	UPROPERTY(EditAnywhere)
+		TSoftClassPtr<UObject> WealthPtr;
+
+};
+
+
+UCLASS()
+class DATADRIVEN_API UWealthData : public UDataAsset
+{
+	GENERATED_BODY()
+
+public:
+
+	//Ä£×éÃû×Ö, Õâ¸öDataAssetÏÂµÄ×ÊÔ´Éú³ÉµÄ¶ÔÏóÄ¬ÈÏ×¢²áµ½ModuleName¶ÔÓ¦µÄÄ£×é
+	//Èç¹ûÎª¿ÕÔòËµÃ÷¸ÃAssetÊ¹ÓÃÓÚ¶à¸öÄ£×éÏÂ, ×Ô¶¯Éú³ÉµÄ¶ÔÏó×¢²áµ½¸ÃAsset·ÅÖÃµÄÄ£×éÏÂ
+	UPROPERTY(EditAnywhere)
+		FName ModuleName;
+
+	//×Ô¶¯Éú³ÉµÄObject
+	UPROPERTY(EditAnywhere)
+		TArray<FWealthObject> AutoObjectData;
+
+	//×Ô¶¯Éú³ÉµÄActor
+	UPROPERTY(EditAnywhere)
+		TArray<FWealthActor> AutoActorData;
+
+	//×Ô¶¯Éú³ÉµÄWidget
+	UPROPERTY(EditAnywhere)
+		TArray<FWealthWidget> AutoWidgetData;
+
+	//Object×ÊÔ´Á´½Ó¼¯ºÏ
+	UPROPERTY(EditAnywhere)
+		TArray<FObjectWealthEntry> ObjectWealthData;
+
+	//Class×ÊÔ´Á´½Ó¼¯ºÏ
+	UPROPERTY(EditAnywhere)
+		TArray<FClassWealthEntry> ClassWealthData;
+
+	//×ÊÔ´Á´½Ó¼¯ºÏ
+	UPROPERTY(EditAnywhere)
+		TArray<FWealthURL> WealthURL;
+
+};
+
 #pragma endregion
 
 
 #pragma region UIFrame
 
-//å¸ƒå±€ç±»å‹
+
+//²¼¾ÖÀàĞÍ
 UENUM()
 enum class ELayoutType : uint8 {
-	Canvas,     //å¯¹åº”CanvasPanel
-	Overlay,	//å¯¹åº”Overlay
+	Canvas,     //¶ÔÓ¦CanvasPanel
+	Overlay,	//¶ÔÓ¦Overlay
 };
 
-//UIå±‚çº§ç±»å‹, è‡ªå·±åŠ¨æ€æ·»åŠ , ä¸€èˆ¬6å±‚å¤Ÿç”¨äº†
+//UI²ã¼¶ÀàĞÍ, ×Ô¼º¶¯Ì¬Ìí¼Ó, Ò»°ã6²ã¹»ÓÃÁË
 UENUM()
 enum class ELayoutLevel : uint8
 {
@@ -959,28 +1014,28 @@ enum class ELayoutLevel : uint8
 	Level_1,
 	Level_2,
 	Level_3,
-	Level_All,//è¿™ä¸ªå±‚çº§ä¼šéšè—æ‰€æœ‰ShowGroupçš„å¯¹è±¡
+	Level_All,//Õâ¸ö²ã¼¶»áÒş²ØËùÓĞShowGroupµÄ¶ÔÏó
 };
 
 
-//çª—å£æ˜¾ç¤ºç±»å‹
+//Ãæ°åÀàĞÍ
 UENUM()
 enum class EPanelShowType : uint8 {
-	DoNothing,   //ä¸åšä»»ä½•æ”¹å˜
-	HideOther,   //éšè—å…¶ä»–
-	Reverse,     //å…³é—­è‡ªå·±
+	DoNothing,   //²»Ó°ÏìÆäËûÃæ°å
+	HideOther,   //Òş²ØÆäËû
+	Reverse,     //·´ÏòÇĞ»», µ¯´°ÀàĞÍ
 };
 
-//çª—å£é€æ˜åº¦ç±»å‹
+//µ¯´°ÕÚÕÖÍ¸Ã÷¶È
 UENUM()
 enum class EPanelLucenyType : uint8 {
-	Lucency,        //å…¨é€æ˜, ä¸èƒ½ç©¿é€
-	Translucence,   //åŠé€æ˜ï¼Œä¸èƒ½ç©¿é€
-	ImPenetrable,   //ä½é€æ˜åº¦ï¼Œä¸èƒ½ç©¿é€
-	Pentrate,       //å…¨é€æ˜, å¯ä»¥ç©¿é€
+	Lucency,        //È«Í¸Ã÷, ²»ÄÜ´©Í¸
+	Translucence,   //°ëÍ¸Ã÷£¬²»ÄÜ´©Í¸
+	ImPenetrable,   //µÍÍ¸Ã÷¶È£¬²»ÄÜ´©Í¸
+	Pentrate,       //È«Í¸Ã÷, ¿ÉÒÔ´©Í¸
 };
 
-//æ§ä»¶å±æ€§
+//Ãæ°åÊôĞÔ
 USTRUCT()
 struct FUINature
 {
@@ -988,27 +1043,35 @@ struct FUINature
 
 public:
 
+	//²¼¾ÖÀàĞÍ
 	UPROPERTY(EditAnywhere)
 		ELayoutType LayoutType;
 
+	//UI²ã¼¶, ¸øHideOtherÀàĞÍµÄÃæ°åÊ¹ÓÃ, Ö¸¶¨Ó°ÏìµÄ·¶Î§
 	UPROPERTY(EditAnywhere)
 		ELayoutLevel LayoutLevel;
 
+	//Ãæ°åÀàĞÍ
 	UPROPERTY(EditAnywhere)
 		EPanelShowType PanelShowType;
 
+	//µ¯´°ÕÚÕÖÍ¸Ã÷¶È
 	UPROPERTY(EditAnywhere)
 		EPanelLucenyType PanelLucenyType;
 
+	//CanvasÃªµã
 	UPROPERTY(EditAnywhere)
 		FAnchors Anchors;
 
+	//CanvasµÄOffset(pos, size)  OverlayµÄpadding
 	UPROPERTY(EditAnywhere)
 		FMargin Offsets;
 
+	//OverlayµÄË®Æ½²¼¾Ö
 	UPROPERTY(EditAnywhere)
 		TEnumAsByte<EHorizontalAlignment> HAlign;
 
+	//OverlayµÄ´¹Ö±²¼¾Ö
 	UPROPERTY(EditAnywhere)
 		TEnumAsByte<EVerticalAlignment> VAlign;
 

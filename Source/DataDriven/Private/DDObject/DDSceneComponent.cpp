@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "DDSceneComponent.h"
 
+#include "DDSceneComponent.h"
 
 // Sets default values for this component's properties
 UDDSceneComponent::UDDSceneComponent()
@@ -23,9 +23,8 @@ void UDDSceneComponent::BeginPlay()
 
 void UDDSceneComponent::DDRelease()
 {
+	IDDOO::DDRelease();
 	//从组件中删除自己,并标记为准备被gc回收
 	DestroyComponent();
-	//ConditionalBeginDestroy();
 }
-
 

@@ -4,12 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-
 #include "DDDriver.h"
 #include "DDModule.h"
-
 #include "DDOO.generated.h"
-
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -28,183 +25,193 @@ class DATADRIVEN_API IDDOO
 		// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	//é€šè¿‡ä¼ å…¥çš„ModNameæ˜¯å¦ä¸ºç©ºæ¥åˆ¤å®šæ˜¯å¦è‡ªåŠ¨æ³¨å†Œ
-	void RegisterToModule(FName ModName, FName ObjectName = FName(), FName ClassName = FName());
+	//×¢²áµ½¿ò¼Ü
+	void RegisterToModule(FName ModName, FName ObjName = FName(), FName ClsName = FName());
 
-	//åŒä¸Š, åªè½¬å…¥æ¨¡ç»„Index
-	void RegisterToModule(int32 ModIndex, FName ObjectName = FName(), FName ClassName = FName());
+	//Í¬ÉÏ, Ö»×ªÈëÄ£×éIndex
+	void RegisterToModule(int32 ModIndex, FName ObjName = FName(), FName ClsName = FName());
 
-	//ä»å¤–éƒ¨æŒ‡å®šæ¨¡ç»„
-	void AssignModule(UDDModule* Mod);
+	//»ñÈ¡¶ÔÏóÃû
+	FName GetObjectName();
 
-	//è·å–ä¸–ç•Œ
-	UWorld* GetDDWorld() const;
+	//»ñÈ¡ÀàÃû
+	FName GetClassName();
 
-	//è·å–Obejctä¸»ä½“
-	UObject* GetObjectBody() const;
-
-	//è·å–æ¨¡ç»„Index
+	//»ñÈ¡Ä£×éIndex
 	int32 GetModuleIndex() const;
 
-	//è·å–å¯¹è±¡åå­—,å…è®¸é‡å†™,è‡ªå·±è®¾å®šæ ¼å¼
-	virtual FName GetObjectName() const;
+	//»ñÈ¡ObejctÖ÷Ìå
+	UObject* GetObjectBody() const;
 
-	//è·å–ç±»çš„åå­—
-	virtual FName GetClassName();
+	//¿ò¼Ü»ñÈ¡ÊÀ½çº¯Êı
+	UWorld* GetDDWorld() const;
 
-	//DDOOçš„Tickå‡½æ•°
-	virtual void DDTick(float DeltaSeconds);
+	//´ÓÍâ²¿Ö¸¶¨Ä£×é
+	void AssignModule(UDDModule* Mod);
 
-	//æ¿€æ´»ç”Ÿå‘½å‘¨æœŸ,æ¿€æ´»æˆåŠŸçš„æ—¶å€™è¿”å›true,åœæ­¢è°ƒç”¨
+	//¼¤»îÉúÃüÖÜÆÚ, ¼¤»î³É¹¦ºó·µ»Øtrue, Í£Ö¹µ÷ÓÃ
 	bool ActiveLife();
 
-	//é”€æ¯ç”Ÿå‘½å‘¨æœŸ,é”€æ¯æˆåŠŸåè¿”å›true,å¹¶ä¸”ä»æ¨¡ç»„æ³¨é”€
+	//Ïú»ÙÉúÃüÖÜÆÚº¯Êı, Ïú»Ù³É¹¦ºó·µ»Øtrue, ´ÓÊı¾İÄ£¿é×¢Ïú
 	bool DestroyLife();
 
-	//è¿è¡Œé‡Šæ”¾å‡½æ•°
-	virtual void OnRealse();
-	//æ¿€æ´»å¯¹è±¡
+	//ÉúÃüÖÜÆÚ,ÓÉÄ£×é¹ÜÀíÆ÷µ÷ÓÃ
+	virtual void DDInit();//³õÊ¼»¯
+	virtual void DDLoading();//¼ÓÔØ°ó¶¨µÄ×ÊÔ´
+	virtual void DDRegister();//×¢²áÊı¾İ»òÕßÊÂ¼ş
+	virtual void DDEnable();//¼¤»î¶ÔÏó
+
+	virtual void DDTick(float DeltaSeconds);//Ö¡º¯Êı
+
+	virtual void DDDisable();//Ê§»î¶ÔÏó
+	virtual void DDUnRegister();//×¢ÏúÊı¾İ»òÕßÊÂ¼ş
+	virtual void DDUnLoading();//Ïú»Ù°ó¶¨×ÊÔ´
+	virtual void DDRelease();//ÊÍ·Å×Ô¼º
+
+	//¼¤»î¶ÔÏó
 	virtual void OnEnable();
-	//å¤±æ´»å¯¹è±¡
+
+	//Ê§»î¶ÔÏó
 	virtual void OnDisable();
 
-	//ç”Ÿå‘½å‘¨æœŸ,ç”±æ¨¡ç»„ç®¡ç†å™¨è°ƒç”¨
-	virtual void DDInit();//åˆå§‹åŒ–
-	virtual void DDLoading();//åŠ è½½ç»‘å®šçš„èµ„æº
-	virtual void DDRegister();//æ³¨å†Œæ•°æ®æˆ–è€…äº‹ä»¶
-	virtual void DDEnable();//æ¿€æ´»å¯¹è±¡
-	virtual void DDDisable();//å¤±æ´»å¯¹è±¡
-	virtual void DDUnRegister();//æ³¨é”€æ•°æ®æˆ–è€…äº‹ä»¶
-	virtual void DDUnLoading();//é”€æ¯ç»‘å®šèµ„æº
-	virtual void DDRelease();//é‡Šæ”¾è‡ªå·±
-
-	//é”€æ¯è‡ªå·±
+	//Ïú»Ù×Ô¼º
 	void DDDestroy();
+
+
+
 
 
 public:
 
-	//æ˜¯å¦å…è®¸å¸§è¿è¡Œ,å¦‚æœè¦å…è®¸å¸§è¿è¡Œéœ€è¦åœ¨æ„é€ å‡½æ•°æˆ–è€…BeginPlayè®¾ç½®,åœ¨UE4é‡Œé»˜è®¤ä¸ºfalse
+	//ÊÇ·ñÔÊĞíÖ¡ÔËĞĞ,Èç¹ûÒªÔÊĞíÖ¡ÔËĞĞĞèÒªÔÚ¹¹Ôìº¯Êı»òÕßBeginPlayÉèÖÃ,ÔÚUE4ÀïÄ¬ÈÏÎªfalse
 	bool IsAllowTickEvent;
 
-	//ç”Ÿå‘½çŠ¶æ€
+	//ÉúÃüÖÜÆÚ×´Ì¬
 	EBaseObjectLife LifeState;
 
-	//è¿è¡ŒçŠ¶æ€
+	//ÉúÃüÔËĞĞ×´Ì¬
 	EBaseObjectState RunState;
 
 protected:
 
-	//å‘å¸ƒæ–¹æ³•
+	//Ö´ĞĞ·´Éä·½·¨
 	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
-	//å‘å¸ƒæ–¹æ³•
+
+	//Ö´ĞĞ·´Éä·½·¨
 	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
+	//×¢²áµ÷ÓÃ½Ó¿Ú
+	template<typename RetType, typename... VarTypes>
+	DDCallHandle<RetType, VarTypes...> RegisterCallPort(FName CallName);
+
+	//×¢²á·½·¨½Ó¿Ú
+	template<typename RetType, typename... VarTypes>
+	DDFunHandle RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun);
+
+	//¿ªÆôÒ»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷¿ªÆô³É¹¦, ·µ»ØfalseËµÃ÷ÒÑ¾­ÓĞÍ¬¶ÔÏóÃûÍ¬Ğ­³ÌÈÎÎñÃûµÄĞ­³Ì´æÔÚ
 	bool StartCoroutine(FName CoroName, DDCoroTask* CoroTask);
 
+	//Í£Ö¹Ò»¸öĞ­³Ì, ·µ»ØtrueËµÃ÷Í£Ö¹Ğ­³Ì³É¹¦, ·µ»ØfalseËµÃ÷Ğ­³ÌÔçÒÑ¾­Í£Ö¹
 	bool StopCoroutine(FName CoroName);
 
-	void StopAllCoroutine();
+	//Í£Ö¹¸Ã¶ÔÏóµÄËùÓĞĞ­³Ì
+	void StopAllCorotine();
 
+	//ÑÓÊ±ÔËĞĞ
 	template<class UserClass>
 	bool InvokeDelay(FName InvokeName, float DelayTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod);
 
+	//ÑÓÊ±Ñ­»·ÔËĞĞ
 	template<class UserClass>
 	bool InvokeRepeat(FName InvokeName, float DelayTime, float RepeatTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod);
 
+	//¹Ø±ÕÑÓÊ±·½·¨
 	bool StopInvoke(FName InvokeName);
 
+	//¹Ø±Õ¶ÔÏóÏÂËùÓĞÑÓÊ±·½·¨
 	void StopAllInvoke();
 
-	//åˆ›å»ºæ–°çš„Classèµ„æº
-	void BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName);
-	void BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName, FTransform SpawnTransform);
-	void BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName);
-	void BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, FTransform SpawnTransform);
-	void BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, TArray<FTransform> SpawnTransforms);
+	//°ó¶¨Axis°´¼üÊÂ¼ş
+	template<class UserClass>
+	FInputAxisBinding& DDBindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName);
+
+	//°ó¶¨´¥ÃşÊÂ¼ş
+	template<class UserClass>
+	FInputTouchBinding& DDBindTouch(UserClass* UserObj, typename FInputTouchHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const EInputEvent KeyEvent);
+
+	//°ó¶¨Antion°´¼üÊÂ¼ş
+	template<class UserClass>
+	FInputActionBinding& DDBindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent);
+
+	//°ó¶¨µ¥¸ö°´¼üÊÂ¼ş
+	template<class UserClass>
+	FInputKeyBinding& DDBindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent);
+
+	//°ó¶¨¶à¸ö°´¼ü
+	template<class UserClass>
+	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II);
+
+	template<class UserClass>
+	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III);
+
+	template<class UserClass>
+	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV);
+
+	template<class UserClass>
+	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV, FKey Key_V);
+
+	//½â°ó¸Ã¶ÔÏóËùÓĞ¶à¸ö°´¼ü
+	void UnBindInput();
+
+	//Íâ²¿·½·¨µ¥´¿»ñÈ¡×ÊÔ´Á´½Ó
+	FWealthURL* GainWealthURL(FName WealthName);
+	void GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL);
+
+	//¼ÓÔØObjectÀàĞÍ×ÊÔ´½Ó¿Ú
+	void LoadObjectWealth(FName WealthName, FName FunName);
+	void LoadObjectWealthKind(FName WealthKind, FName FunName);
+
+	//¼ÓÔØClassÀàĞÍ×ÊÔ´½Ó¿Ú
+	void LoadClassWealth(FName WealthName, FName FunName);
+	void LoadClassWealthKind(FName WealthKind, FName FunName);
+
+	//´´½¨Ò»¸ö¶ÔÏóÊµÀı
+	void BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName);
+	void BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName, FTransform SpawnTransform);
+
+	//´´½¨Í¬×ÊÔ´ÖÖÀàÃûµÄ¶ÔÏóÊµÀı, Í¬ÖÖÀàÃûÏÂµÄÃ¿¸ö×ÊÔ´Á´½Ó´´½¨Ò»¸ö¶ÔÏóÊµÀı
 	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName FunName);
 	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName FunName, FTransform SpawnTransform);
 	void BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName FunName, TArray<FTransform> SpawnTransforms);
 
-	//è·å–UEèµ„æº
-	void LoadClassWealth(FName WealthName, FName FunName);
-	void LoadClassWealthKind(FName WealthKind, FName FunName);
+	//´´½¨¶à¸öÍ¬×ÊÔ´ÃûµÄ¶ÔÏóÊµÀı
+	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName);
+	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, FTransform SpawnTransform);
+	void BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, TArray<FTransform> SpawnTransforms);
 
-	//è·å–UEèµ„æº
-	void LoadObjectWealth(FName WealthName, FName FunName);
-	void LoadObjectWealthKind(FName WealthKind, FName FunName);
-
-	//å•çº¯è·å–èµ„æºé“¾æ¥
-	FWealthURL* GainWealthURL(FName WealthName);
-	void GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL);
-
-	//æ³¨å†Œè°ƒç”¨æ¥å£
-	template<typename RetType, typename... VarTypes>
-	DDCallHandle<RetType, VarTypes...> RegisterCallPort(FName CallName);
-	//æ³¨å†Œè°ƒç”¨æ–¹æ³•
-	template<typename RetType, typename... VarTypes>
-	DDFunHandle RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun);
-
-	//æ³¨å†ŒAxisæŒ‰é”®äº‹ä»¶
-	template<class UserClass>
-	FInputAxisBinding& DDBindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName);
-
-	//æ³¨å†Œè§¦æ‘¸äº‹ä»¶
-	template<class UserClass>
-	FInputTouchBinding& DDBindTouch(UserClass* UserObj, typename FInputTouchHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const EInputEvent KeyEvent);
-
-	//æ³¨å†Œå•ä¸ªæŒ‰é”®äº‹ä»¶
-	template<class UserClass>
-	FInputKeyBinding& DDBindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent);
-
-	//æ³¨å†Œå¤šä¸ªæŒ‰é”®
-	template<class UserClass>
-	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II);
-	template<class UserClass>
-	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III);
-	template<class UserClass>
-	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV);
-	template<class UserClass>
-	UDDInputBinder& DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV, FKey Key_V);
 
 protected:
 
-	//ä¿å­˜è‡ªèº«UObject
-	UObject * IBody;
+	//±£´æ×ÔÉíµÄUObject
+	UObject* IBody;
 
-	//ä¿å­˜å¯¹åº”çš„æ¨¡ç»„
+	//±£´æ¶ÔÓ¦µÄÄ£×é
 	UDDModule* IModule;
 
-	//ä¿å­˜é©±åŠ¨å™¨Driver
+	//±£´æÇı¶¯Æ÷
 	ADDDriver* IDriver;
 
-	//ä¿å­˜å¯¹åº”æ¨¡ç»„çš„Index
-	int32 ModuleIndex;
-
-	//ç‰©å“çš„åå­—,å¦‚æœä¸ä¸ºç©º,è·å–ç‰©å“åå°±è¿”å›è¿™ä¸ª,å¹¶ä¸”æ­¤ç‰©å“åœ¨å¯¹åº”çš„Moduleå”¯ä¸€
+	//¶ÔÏóÃû×Ö
 	FName IObjectName;
 
-	//ç±»å,è¿™ä¸ªåœ¨åˆå§‹åŒ–æ—¶ä¸€å®šè¦æŒ‡å®š
+	//¶ÔÏóÀàÃû×Ö
 	FName IClassName;
+
+	//¶ÔÓ¦Ä£×éµÄĞòºÅ
+	int32 ModuleIndex;
 
 
 };
-
-template<class UserClass>
-bool IDDOO::InvokeDelay(FName InvokeName, float DelayTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
-{
-	DDInvokeTask* InvokeTask = new DDInvokeTask(DelayTime, false, 0.f);
-	InvokeTask->InvokeEvent.BindUObject(UserObj, InMethod);
-	return IModule->StartInvoke(GetObjectName(), InvokeName, InvokeTask);
-}
-
-template<class UserClass>
-bool IDDOO::InvokeRepeat(FName InvokeName, float DelayTime, float RepeatTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
-{
-	DDInvokeTask* InvokeTask = new DDInvokeTask(DelayTime, true, RepeatTime);
-	InvokeTask->InvokeEvent.BindUObject(UserObj, InMethod);
-	return IModule->StartInvoke(GetObjectName(), InvokeName, InvokeTask);
-}
 
 template<typename RetType, typename... VarTypes>
 DDCallHandle<RetType, VarTypes...>
@@ -223,7 +230,24 @@ DDFunHandle IDDOO::RegisterFunPort(int32 ModuleID, FName CallName, TFunction<Ret
 }
 
 template<class UserClass>
-FInputAxisBinding& IDDOO::DDBindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FName AxisName)
+bool IDDOO::InvokeDelay(FName InvokeName, float DelayTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
+{
+	DDInvokeTask* InvokeTask = new DDInvokeTask(DelayTime, false, 0.f);
+	InvokeTask->InvokeEvent.BindUObject(UserObj, InMethod);
+	return IModule->StartInvoke(GetObjectName(), InvokeName, InvokeTask);
+}
+
+template<class UserClass>
+bool IDDOO::InvokeRepeat(FName InvokeName, float DelayTime, float RepeatTime, UserClass* UserObj, typename FDDInvokeEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod)
+{
+	DDInvokeTask* InvokeTask = new DDInvokeTask(DelayTime, true, RepeatTime);
+	InvokeTask->InvokeEvent.BindUObject(UserObj, InMethod);
+	return IModule->StartInvoke(GetObjectName(), InvokeName, InvokeTask);
+}
+
+
+template<class UserClass>
+FInputAxisBinding& IDDOO::DDBindAxis(UserClass* UserObj, typename FInputAxisHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName AxisName)
 {
 	return IModule->BindAxis(UserObj, InMethod, AxisName);
 }
@@ -235,7 +259,13 @@ FInputTouchBinding& IDDOO::DDBindTouch(UserClass* UserObj, typename FInputTouchH
 }
 
 template<class UserClass>
-FInputKeyBinding& IDDOO::DDBindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
+FInputActionBinding& IDDOO::DDBindAction(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FName ActionName, const EInputEvent KeyEvent)
+{
+	return IModule->BindAction(UserObj, InMethod, ActionName, KeyEvent);
+}
+
+template<class UserClass>
+FInputKeyBinding& IDDOO::DDBindInput(UserClass* UserObj, typename FInputActionHandlerSignature::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, const FKey Key, const EInputEvent KeyEvent)
 {
 	return IModule->BindInput(UserObj, InMethod, Key, KeyEvent);
 }
@@ -244,8 +274,8 @@ template<class UserClass>
 UDDInputBinder& IDDOO::DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II)
 {
 	TArray<FKey> KeyGroup;
-	KeyGroup.Add(Key_I);
-	KeyGroup.Add(Key_II);
+	KeyGroup.Push(Key_I);
+	KeyGroup.Push(Key_II);
 	return IModule->BindInput(UserObj, InMethod, KeyGroup, GetObjectName());
 }
 
@@ -253,9 +283,9 @@ template<class UserClass>
 UDDInputBinder& IDDOO::DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III)
 {
 	TArray<FKey> KeyGroup;
-	KeyGroup.Add(Key_I);
-	KeyGroup.Add(Key_II);
-	KeyGroup.Add(Key_III);
+	KeyGroup.Push(Key_I);
+	KeyGroup.Push(Key_II);
+	KeyGroup.Push(Key_III);
 	return IModule->BindInput(UserObj, InMethod, KeyGroup, GetObjectName());
 }
 
@@ -263,10 +293,10 @@ template<class UserClass>
 UDDInputBinder& IDDOO::DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV)
 {
 	TArray<FKey> KeyGroup;
-	KeyGroup.Add(Key_I);
-	KeyGroup.Add(Key_II);
-	KeyGroup.Add(Key_III);
-	KeyGroup.Add(Key_IV);
+	KeyGroup.Push(Key_I);
+	KeyGroup.Push(Key_II);
+	KeyGroup.Push(Key_III);
+	KeyGroup.Push(Key_IV);
 	return IModule->BindInput(UserObj, InMethod, KeyGroup, GetObjectName());
 }
 
@@ -274,10 +304,10 @@ template<class UserClass>
 UDDInputBinder& IDDOO::DDBindInput(UserClass* UserObj, typename FDDInputEvent::TUObjectMethodDelegate<UserClass>::FMethodPtr InMethod, FKey Key_I, FKey Key_II, FKey Key_III, FKey Key_IV, FKey Key_V)
 {
 	TArray<FKey> KeyGroup;
-	KeyGroup.Add(Key_I);
-	KeyGroup.Add(Key_II);
-	KeyGroup.Add(Key_III);
-	KeyGroup.Add(Key_IV);
-	KeyGroup.Add(Key_V);
+	KeyGroup.Push(Key_I);
+	KeyGroup.Push(Key_II);
+	KeyGroup.Push(Key_III);
+	KeyGroup.Push(Key_IV);
+	KeyGroup.Push(Key_V);
 	return IModule->BindInput(UserObj, InMethod, KeyGroup, GetObjectName());
 }

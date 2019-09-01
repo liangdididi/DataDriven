@@ -1,83 +1,93 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+
 #include "DDOO.h"
-#include "UObject/NoExportTypes.h"
 
+// Add default functionality here for any IDDOO functions that are not pure virtual.
 
-
-void IDDOO::RegisterToModule(FName ModName, FName ObjectName, FName ClassName)
+void IDDOO::RegisterToModule(FName ModName, FName ObjName /*= FName()*/, FName ClsName /*= FName()*/)
 {
-	//å¦‚æœIDriverå·²ç»å­˜åœ¨,è¯´æ˜å·²ç»æ³¨å†Œè¿‡äº†,ç›´æ¥è¿”å›,é¿å…é‡å¤å­˜è´®
-	if (IDriver) return;
-	//å¦‚æœæ¨¡ç»„åä¸ºç©º,ç›´æ¥è¿”å›
-	if (ModName.IsNone()) return;
-	//æ³¨å†Œç±»åå’Œå¯¹è±¡å
-	if (!ObjectName.IsNone()) IObjectName = ObjectName;
-	if (!ClassName.IsNone()) IClassName = ClassName;
-	//è·å–UObjectä¸»ä½“
+	//ÅĞ¶ÏÊÇ·ñÒÑ¾­×¢²áµ½¿ò¼ÜÁË
+	if (IDriver && IModule)
+		return;
+	//Èç¹ûÄ£×éÃûÎª¿Õ, Ö±½Ó·µ»Ø
+	if (ModName.IsNone())
+		return;
+	//Ö¸¶¨¶ÔÏóÃûºÍÀàÃû
+	if (!ObjName.IsNone())
+		IObjectName = ObjName;
+	if (!ClsName.IsNone())
+		IClassName = ClsName;
+	//»ñÈ¡UObjectÖ÷Ìå
 	IBody = Cast<UObject>(this);
-	//è·å–Driver
+	//»ñÈ¡Çı¶¯Æ÷
 	IDriver = UDDCommon::Get()->GetDriver();
-	//æ³¨å†Œåˆ°æ¨¡ç»„
+	//×¢²áµ½Ä£×é
 	if (IDriver)
 	{
-		//å¦‚æœè·å¾—çš„IDä¸ºè´Ÿç›´æ¥è¿”å›
+		//Èç¹û»ñµÃµÄIDÎª¸ºÖ±½Ó·µ»Ø
 		ModuleIndex = DDH::GetEnumIndexFromName(IDriver->ModuleType.ToString(), ModName);
-		if (ModuleIndex < 0) {
-			DDH::Debug() << GetObjectName() << " Get " << ModName << " ModuleID Failed !" << DDH::Endl();
+		if (ModuleIndex < 0)
+		{
+			DDH::Debug() << GetObjectName() << " Get " << ModName << " ModuleIndex Failed!" << DDH::Endl();
 			return;
 		}
-		//å¦‚æœæ³¨å†Œä¸æˆåŠŸè¯´æ˜è¿˜æ²¡æœ‰å®ä¾‹åŒ–å¯¹åº”çš„Module
+		//Èç¹û×¢²á²»³É¹¦ËµÃ÷»¹Ã»ÓĞÊµÀı»¯¶ÔÓ¦µÄModule
 		if (!IDriver->RegisterToModule(this))
 			DDH::Debug() << GetObjectName() << " Register To " << ModName << " Failed !" << DDH::Endl();
 	}
-	else {
-		//DDriverä¸å­˜åœ¨
+	else
+		//DDriver²»´æÔÚ
 		DDH::Debug() << GetObjectName() << " Get DDDriver Failed !" << DDH::Endl();
-	}
 }
 
-
-void IDDOO::RegisterToModule(int32 ModIndex, FName ObjectName, FName ClassName)
+void IDDOO::RegisterToModule(int32 ModIndex, FName ObjName /*= FName()*/, FName ClsName /*= FName()*/)
 {
-	//å¦‚æœIDriverå·²ç»å­˜åœ¨,è¯´æ˜å·²ç»æ³¨å†Œè¿‡äº†,ç›´æ¥è¿”å›,é¿å…é‡å¤å­˜è´®
-	if (IDriver) return;
-	//æ³¨å†Œç±»åå’Œå¯¹è±¡å
-	if (!ObjectName.IsNone()) IObjectName = ObjectName;
-	if (!ClassName.IsNone()) IClassName = ClassName;
-	//è·å–UObjectä¸»ä½“
+	//ÅĞ¶ÏÊÇ·ñÒÑ¾­×¢²áµ½¿ò¼ÜÁË
+	if (IDriver && IModule)
+		return;
+	//Ö¸¶¨¶ÔÏóÃûºÍÀàÃû
+	if (!ObjName.IsNone())
+		IObjectName = ObjName;
+	if (!ClsName.IsNone())
+		IClassName = ClsName;
+	//»ñÈ¡UObjectÖ÷Ìå
 	IBody = Cast<UObject>(this);
-	//è·å–Driver
+	//»ñÈ¡Çı¶¯Æ÷
 	IDriver = UDDCommon::Get()->GetDriver();
-	//æ³¨å†Œåˆ°æ¨¡ç»„
+	//×¢²áµ½Ä£×é
 	if (IDriver)
 	{
-		//èµ‹äºˆæ¨¡ç»„ID
+		//Èç¹û»ñµÃµÄIDÎª¸ºÖ±½Ó·µ»Ø
 		ModuleIndex = ModIndex;
-		//å¦‚æœæ³¨å†Œä¸æˆåŠŸè¯´æ˜è¿˜æ²¡æœ‰å®ä¾‹åŒ–å¯¹åº”çš„Module
+		if (ModuleIndex < 0)
+		{
+			DDH::Debug() << GetObjectName() << " Get ModuleIndex " << ModuleIndex << " ModuleIndex Failed!" << DDH::Endl();
+			return;
+		}
+		//Èç¹û×¢²á²»³É¹¦ËµÃ÷»¹Ã»ÓĞÊµÀı»¯¶ÔÓ¦µÄModule
 		if (!IDriver->RegisterToModule(this))
 			DDH::Debug() << GetObjectName() << " Register To ModuleIndex " << ModuleIndex << " Failed !" << DDH::Endl();
 	}
-	else {
-		//DDriverä¸å­˜åœ¨
+	else
+		//DDriver²»´æÔÚ
 		DDH::Debug() << GetObjectName() << " Get DDDriver Failed !" << DDH::Endl();
-	}
 }
 
-void IDDOO::AssignModule(UDDModule* Mod)
+FName IDDOO::GetObjectName()
 {
-	IModule = Mod;
+	if (!IObjectName.IsNone())
+		return IObjectName;
+	IObjectName = IBody->GetFName();
+	return IObjectName;
 }
 
-UWorld* IDDOO::GetDDWorld() const
+FName IDDOO::GetClassName()
 {
-	if (IDriver) return IDriver->GetWorld();
-	return NULL;
-}
-
-UObject* IDDOO::GetObjectBody() const
-{
-	return IBody;
+	if (!IClassName.IsNone())
+		return IClassName;
+	IClassName = IBody->GetClass()->GetFName();
+	return IClassName;
 }
 
 int32 IDDOO::GetModuleIndex() const
@@ -85,18 +95,22 @@ int32 IDDOO::GetModuleIndex() const
 	return ModuleIndex;
 }
 
-FName IDDOO::GetObjectName() const
+UObject* IDDOO::GetObjectBody() const
 {
-	return IObjectName.IsNone() ? IBody->GetFName() : IObjectName;
+	return IBody;
 }
 
-FName IDDOO::GetClassName()
+UWorld* IDDOO::GetDDWorld() const
 {
-	if (!IClassName.IsNone()) return IClassName;
-	IClassName = IBody->StaticClass()->GetFName();
-	return IClassName;
+	if (IDriver)
+		return IDriver->GetWorld();
+	return NULL;
 }
 
+void IDDOO::AssignModule(UDDModule* Mod)
+{
+	IModule = Mod;
+}
 
 bool IDDOO::ActiveLife()
 {
@@ -117,8 +131,9 @@ bool IDDOO::ActiveLife()
 	case EBaseObjectLife::Register:
 		DDEnable();
 		LifeState = EBaseObjectLife::Enable;
-		//è®¾ç½®è¿è¡ŒçŠ¶æ€ä¸ºç¨³å®š
+		//ÉèÖÃÔËĞĞ×´Ì¬ÎªÎÈ¶¨
 		RunState = EBaseObjectState::Stable;
+		//·µ»Øtrue, Í£Ö¹ÔËĞĞ¼¤»î×´Ì¬º¯Êı
 		return true;
 	}
 	return false;
@@ -131,21 +146,63 @@ bool IDDOO::DestroyLife()
 	case EBaseObjectLife::Enable:
 		DDDisable();
 		LifeState = EBaseObjectLife::Disable;
-		//è®¾ç½®è¿è¡ŒçŠ¶æ€ä¸ºé”€æ¯
+		//ÉèÖÃ×´Ì¬ÎªÏú»Ù
 		RunState = EBaseObjectState::Destroy;
 		break;
 	case EBaseObjectLife::Disable:
 		DDUnRegister();
 		LifeState = EBaseObjectLife::UnRegister;
-		//è®¾ç½®è¿è¡ŒçŠ¶æ€ä¸ºé”€æ¯,é¿å…ä»DisableçŠ¶æ€ä¸‹è¿è¡Œçš„å¯¹è±¡æ²¡æœ‰ä¿®æ”¹RunStateä¸ºé”€æ¯
+		//ÉèÖÃÔËĞĞ×´Ì¬ÎªÏú»Ù,±ÜÃâ´ÓDisable×´Ì¬ÏÂÔËĞĞµÄ¶ÔÏóÃ»ÓĞĞŞ¸ÄRunStateÎªÏú»Ù
 		RunState = EBaseObjectState::Destroy;
 		break;
 	case EBaseObjectLife::UnRegister:
 		DDUnLoading();
 		LifeState = EBaseObjectLife::UnLoading;
+		//·µ»Øtrue, Í£Ö¹ÔËĞĞÏú»Ù×´Ì¬º¯Êı
 		return true;
 	}
 	return false;
+}
+
+void IDDOO::DDInit() {}
+
+void IDDOO::DDLoading() {}
+
+void IDDOO::DDRegister() {}
+
+void IDDOO::DDEnable() {}
+
+void IDDOO::DDTick(float DeltaSeconds) {}
+
+void IDDOO::DDDisable() {}
+
+void IDDOO::DDUnRegister() {}
+
+void IDDOO::DDUnLoading() {}
+
+void IDDOO::DDRelease()
+{
+	//×¢ÏúËùÓĞĞ­³Ì, ÑÓÊ±ÒÔ¼°°´¼üÊÂ¼ş
+	StopAllCorotine();
+	StopAllInvoke();
+	UnBindInput();
+}
+
+void IDDOO::OnEnable()
+{
+	//ÉèÖÃ×´Ì¬Îª¼¤»î×´Ì¬
+	LifeState = EBaseObjectLife::Enable;
+}
+
+void IDDOO::OnDisable()
+{
+	//ÉèÖÃ×´Ì¬ÎªÊ§»î×´Ì¬
+	LifeState = EBaseObjectLife::Disable;
+}
+
+void IDDOO::DDDestroy()
+{
+	IModule->ChildDestroy(GetObjectName());
 }
 
 void IDDOO::ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param)
@@ -164,51 +221,6 @@ void IDDOO::ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param)
 		IDriver->ExecuteFunction(Agreement, Param);
 }
 
-void IDDOO::OnRealse()
-{
-	//æ³¨é”€æ‰€æœ‰çš„åç¨‹, å»¶æ—¶å’ŒæŒ‰é”®äº‹ä»¶, å¦‚æœæœ‰çš„è¯
-	StopAllCoroutine();
-	StopAllInvoke();
-	IModule->UnBindInput(GetObjectName());
-
-	//è¿è¡ŒDDæ¡†æ¶çš„é‡Šæ”¾å‡½æ•°
-	DDRelease();
-}
-
-void IDDOO::OnEnable()
-{
-	//ä¸€èˆ¬è¿è¡Œä¸€ä¸‹DDEnableå‡½æ•°,å¯ä»¥é‡å†™
-	DDEnable();
-	//è®¾ç½®çŠ¶æ€ä¸ºæ¿€æ´»çŠ¶æ€
-	LifeState = EBaseObjectLife::Enable;
-}
-
-void IDDOO::OnDisable()
-{
-	//ä¸€èˆ¬è¿è¡Œä¸€ä¸‹DDDisableå‡½æ•°,å¯ä»¥é‡å†™
-	DDDisable();
-	//è®¾ç½®çŠ¶æ€ä¸ºå¤±æ´»çŠ¶æ€
-	LifeState = EBaseObjectLife::Disable;
-}
-
-void IDDOO::DDTick(float DeltaSeconds) {}
-
-//ç”Ÿå‘½å‘¨æœŸç³»åˆ—å‡½æ•°
-void IDDOO::DDInit() {}
-void IDDOO::DDLoading() {}
-void IDDOO::DDRegister() {}
-void IDDOO::DDEnable() {}
-void IDDOO::DDDisable() {}
-void IDDOO::DDUnRegister() {}
-void IDDOO::DDUnLoading() {}
-void IDDOO::DDRelease() {}
-
-
-void IDDOO::DDDestroy()
-{
-	IModule->ChildDestroy(GetObjectName());
-}
-
 bool IDDOO::StartCoroutine(FName CoroName, DDCoroTask* CoroTask)
 {
 	return IModule->StartCoroutine(GetObjectName(), CoroName, CoroTask);
@@ -219,9 +231,9 @@ bool IDDOO::StopCoroutine(FName CoroName)
 	return IModule->StopCoroutine(GetObjectName(), CoroName);
 }
 
-void IDDOO::StopAllCoroutine()
+void IDDOO::StopAllCorotine()
 {
-	IModule->StopAllCoroutine(GetObjectName());
+	return IModule->StopAllCorotine(GetObjectName());
 }
 
 bool IDDOO::StopInvoke(FName InvokeName)
@@ -234,29 +246,49 @@ void IDDOO::StopAllInvoke()
 	IModule->StopAllInvoke(GetObjectName());
 }
 
-void IDDOO::BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName)
+void IDDOO::UnBindInput()
 {
-	IModule->BulidSingleClassWealth(WealthType, WealthName, GetObjectName(), FunName, FTransform::Identity);
+	IModule->UnBindInput(GetObjectName());
 }
 
-void IDDOO::BulidSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName, FTransform SpawnTransform)
+FWealthURL* IDDOO::GainWealthURL(FName WealthName)
 {
-	IModule->BulidSingleClassWealth(WealthType, WealthName, GetObjectName(), FunName, SpawnTransform);
+	return IModule->GainWealthURL(WealthName);
 }
 
-void IDDOO::BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName)
+void IDDOO::GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL)
 {
-	IModule->BulidMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, TArray<FTransform>{ FTransform::Identity });
+	IModule->GainWealthURL(WealthKind, OutURL);
 }
 
-void IDDOO::BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, FTransform SpawnTransform)
+void IDDOO::LoadObjectWealth(FName WealthName, FName FunName)
 {
-	IModule->BulidMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, TArray<FTransform>{ SpawnTransform });
+	IModule->LoadObjectWealth(WealthName, GetObjectName(), FunName);
 }
 
-void IDDOO::BulidMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, TArray<FTransform> SpawnTransforms)
+void IDDOO::LoadObjectWealthKind(FName WealthKind, FName FunName)
 {
-	IModule->BulidMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, SpawnTransforms);
+	IModule->LoadObjectWealthKind(WealthKind, GetObjectName(), FunName);
+}
+
+void IDDOO::LoadClassWealth(FName WealthName, FName FunName)
+{
+	IModule->LoadClassWealth(WealthName, GetObjectName(), FunName);
+}
+
+void IDDOO::LoadClassWealthKind(FName WealthKind, FName FunName)
+{
+	IModule->LoadClassWealthKind(WealthKind, GetObjectName(), FunName);
+}
+
+void IDDOO::BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName)
+{
+	IModule->BuildSingleClassWealth(WealthType, WealthName, GetObjectName(), FunName, FTransform::Identity);
+}
+
+void IDDOO::BuildSingleClassWealth(EWealthType WealthType, FName WealthName, FName FunName, FTransform SpawnTransform)
+{
+	IModule->BuildSingleClassWealth(WealthType, WealthName, GetObjectName(), FunName, SpawnTransform);
 }
 
 void IDDOO::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName FunName)
@@ -274,33 +306,18 @@ void IDDOO::BuildKindClassWealth(EWealthType WealthType, FName WealthKind, FName
 	IModule->BuildKindClassWealth(WealthType, WealthKind, GetObjectName(), FunName, SpawnTransforms);
 }
 
-void IDDOO::LoadClassWealth(FName WealthName, FName FunName)
+void IDDOO::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName)
 {
-	IModule->LoadClassWealth(WealthName, GetObjectName(), FunName);
+	IModule->BuildMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, TArray<FTransform>{ FTransform::Identity });
 }
 
-void IDDOO::LoadClassWealthKind(FName WealthKind, FName FunName)
+void IDDOO::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, FTransform SpawnTransform)
 {
-	IModule->LoadClassWealthKind(WealthKind, GetObjectName(), FunName);
+	IModule->BuildMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, TArray<FTransform>{ SpawnTransform });
 }
 
-void IDDOO::LoadObjectWealth(FName WealthName, FName FunName)
+void IDDOO::BuildMultiClassWealth(EWealthType WealthType, FName WealthName, int32 Amount, FName FunName, TArray<FTransform> SpawnTransforms)
 {
-	IModule->LoadObjectWealth(WealthName, GetObjectName(), FunName);
-}
-
-void IDDOO::LoadObjectWealthKind(FName WealthKind, FName FunName)
-{
-	IModule->LoadObjectWealthKind(WealthKind, GetObjectName(), FunName);
-}
-
-FWealthURL* IDDOO::GainWealthURL(FName WealthName)
-{
-	return IModule->GainWealthURL(WealthName);
-}
-
-void IDDOO::GainWealthURL(FName WealthKind, TArray<FWealthURL*>& OutURL)
-{
-	IModule->GainWealthURL(WealthKind, OutURL);
+	IModule->BuildMultiClassWealth(WealthType, WealthName, Amount, GetObjectName(), FunName, SpawnTransforms);
 }
 

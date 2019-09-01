@@ -7,7 +7,6 @@
 #include "DDOO.h"
 #include "DDPlayerController.generated.h"
 
-
 /**
  * 
  */
@@ -20,8 +19,6 @@ public:
 
 	ADDPlayerController();
 
-	//PlayerController不允许销毁,不允许重写销毁周期函数
-	//virtual void DDRelease() override;
 
 public:
 
@@ -38,5 +35,4 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
 };

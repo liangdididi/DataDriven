@@ -14,13 +14,10 @@ UCLASS()
 class DATADRIVEN_API ADDHUD : public AHUD, public IDDOO
 {
 	GENERATED_BODY()
-	
+
 public:
 
 	ADDHUD();
-
-	//GameState不允许销毁,不允许重写销毁周期函数
-	//virtual void DDRelease() override;
 
 public:
 
@@ -37,5 +34,4 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
 };

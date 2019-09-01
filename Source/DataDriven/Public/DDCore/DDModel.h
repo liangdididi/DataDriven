@@ -7,11 +7,10 @@
 #include "DDMM.h"
 #include "DDModel.generated.h"
 
-class UDDModule;
-class IDDOO;
 
+class IDDOO;
 /**
- *
+ * 
  */
 UCLASS()
 class DATADRIVEN_API UDDModel : public UObject, public IDDMM
@@ -24,67 +23,64 @@ public:
 
 	virtual void ModelBeginPlay() {}
 
-	////注册父类模组
-	//void RegisterSuperModule(UDDModule* SuperMod);
-	////注册单个子类模组
-	//void RegisterChildModule(UDDModule* ChildMod);
-	//注册对象
-	void RegisterObject(IDDOO* ObjectInst);
-	//数据的Tick函数
 	virtual void ModelTick(float DeltaSeconds);
-	//根据名字获取对象
-	void GetSelfObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup);
-	//根据名字获取其他对象,返回全部对象的数量
-	int32 GetOtherObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
+	//注册对象到数据模块
+	void RegisterObject(IDDOO* ObjectInst);
+
+	//销毁对象, 销毁对象本体调用
+	void DestroyObject(FName ObjectName);
+
+	//销毁对象
+	void DestroyObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//激活对象
+	void EnableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//失活对象
+	void DisableObject(EAgreementType Agreement, TArray<FName> TargetNameGroup);
+
+	//根据传入的对象名获取对象
+	void GetSelfObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
+	//根据传入的对象名获取这些对象名对应对象外的其他对象
+	int32 GetOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
 	//根据名字数组获取相同类的其他对象,返回这个类的对象的数量
-	int32 GetClassOtherObject(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+	int32 GetClassOtherObject(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
 	//根据名字获取类的对象
-	void GetSelfClass(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+	void GetSelfClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
 	//根据名字获取类以外的类的对象
-	void GetOtherClass(TArray<FName> ObjectNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+	void GetOtherClass(TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
+
 	//获取所有对象
 	void GetAll(TArray<IDDOO*>& TargetObjectGroup);
-	
-	//销毁对象
-	void DestroyObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup);
-	//激活对象
-	void EnableObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup);
-	//失活对象
-	void DisableObject(EAgreementType Agreement, TArray<FName> ObjectNameGroup);
 
-	//返回全部对象的数量
-	int32 GetObjectGroupNum() const;
-	//返回某个类的对象的数量
-	int32 GetClassObjectGroupNum(FName ObjectClassName) const;
+	//根据协议获取对象集合
+	void GetAgreementObject(EAgreementType Agreement, TArray<FName> TargetNameGroup, TArray<IDDOO*>& TargetObjectGroup);
 
 protected:
 
-	//根据名字删除对象
-	void RemoveObject(FName ObjectName);
-	//根据类名删除类集合
-	void RemoveObjectClass(FName ObjectClassName);
-
-protected:
-
-	////父级模组
-	//UDDModule* SuperModule;
-	////子集模组
-	//TMap<int32, UDDModule*> ChildModule;
-	//模组对象
+	//框架对象数组, Key : ObjectName,  Value : *
 	TMap<FName, IDDOO*> ObjectGroup;
-	//模组类对象集
+
+	//框架对象类集合, Key : ClassName , Value : TArray<IDDOO*>
 	TMap<FName, TArray<IDDOO*>> ObjectClassGroup;
 
-	//等待生命周期的对象集
-	TArray<IDDOO*> ObjectLifeGroup;
-	//运行Tick函数的对象集
+	//激活生命周期的对象集
+	TArray<IDDOO*> ObjectActiveGroup;
+
+	//运行需要运行Tick函数的对象集合
 	TArray<IDDOO*> ObjectTickGroup;
 
 	//销毁生命周期的对象集
 	TArray<IDDOO*> ObjectDestroyGroup;
-	//释放周期函数,只执行一次就全部释放
+	
+	//释放周期函数对象集合, 只执行一次就全部释放
 	TArray<IDDOO*> ObjectReleaseGroup;
-	//临时销毁生命周期的对象集,确保已经激活才销毁
-	TArray<IDDOO*> PreObjectDestroyGroup;
 
+	//预销毁对象组, 这些对象还处于激活生命周期, 但是在激活生命周期没运行完之前就已经设定为要进行销毁
+	TArray<IDDOO*> PreObjectDestroyGroup;
 };

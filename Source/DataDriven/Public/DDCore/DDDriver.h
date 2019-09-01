@@ -4,11 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "DDCommon/DDCommon.h"
 #include "DDCenterModule.h"
+#include "DDCommon/DDCommon.h"
 #include "DDDriver.generated.h"
 
-class USceneComponent;
 class IDDOO;
 
 UCLASS()
@@ -16,29 +15,30 @@ class DATADRIVEN_API ADDDriver : public AActor
 {
 	GENERATED_BODY()
 	
-public:
-
+public:	
+	// Sets default values for this actor's properties
 	ADDDriver();
 
 	virtual void PostInitializeComponents() override;
 
 	virtual void Tick(float DeltaTime) override;
 
-	//调动模组方法
-	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
-	//调用对象方法
-	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
+	//提供给资源们进行注册
+	bool RegisterToModule(IDDOO* ObjectInst);
+
 
 #if WITH_EDITOR
 	//属性修改方法
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 
-	//提供给资源们进行注册
-	bool RegisterToModule(IDDOO* Object);
+	//执行反射方法
+	void ExecuteFunction(DDModuleAgreement Agreement, DDParam* Param);
 
+	//执行反射方法
+	void ExecuteFunction(DDObjectAgreement Agreement, DDParam* Param);
 
-	//注册调用方法
+	//注册方法接口
 	template<typename RetType, typename... VarTypes>
 	DDFunHandle RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun);
 
@@ -55,24 +55,21 @@ public:
 		FName ModuleType;
 
 protected:
-
+	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	//注册GamePlay组件到框架
+	//注册GamePlay框架到DataDriven
 	void RegisterGamePlay();
-
 
 protected:
 
 	//是否已经运行BeginPlay函数
 	bool IsBeginPlay;
 
-	
-	
 };
 
 template<typename RetType, typename... VarTypes>
 DDFunHandle ADDDriver::RegisterFunPort(int32 ModuleID, FName CallName, TFunction<RetType(VarTypes...)> InsFun)
 {
-	return Center->RegisterFunPort<RetType, VarTypes...>(ModuleID, CallName, InsFun);
+	return Center->AllotRegisterFunPort<RetType, VarTypes...>(ModuleID, CallName, InsFun);
 }
