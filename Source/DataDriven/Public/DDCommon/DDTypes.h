@@ -429,7 +429,7 @@ bool DDCallHandle<RetType, VarTypes...>::IsBound()
 	return MsgQuene->IsBound(CallName);
 }
 
-//运行Execute前必须运行IsBound()函数判断是否有绑定
+//执行Execute方法之前必须手动调用IsBound()判定是否有绑定函数
 template<typename RetType, typename... VarTypes>
 RetType DDCallHandle<RetType, VarTypes...>::Execute(VarTypes... Params)
 {

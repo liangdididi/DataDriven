@@ -180,7 +180,7 @@ void IDDOO::DDUnRegister() {}
 
 void IDDOO::DDUnLoading() {}
 
-void IDDOO::DDRelease()
+void IDDOO::DDRelease() 
 {
 	//注销所有协程, 延时以及按键事件
 	StopAllCorotine();

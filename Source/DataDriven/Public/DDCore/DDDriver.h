@@ -26,7 +26,6 @@ public:
 	//提供给资源们进行注册
 	bool RegisterToModule(IDDOO* ObjectInst);
 
-
 #if WITH_EDITOR
 	//属性修改方法
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
