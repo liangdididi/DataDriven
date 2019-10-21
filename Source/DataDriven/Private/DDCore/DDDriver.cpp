@@ -21,13 +21,13 @@ ADDDriver::ADDDriver()
 void ADDDriver::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	//×¢²áDriverµ½UDDCommonµ¥Àı
+	//æ³¨å†ŒDriveråˆ°UDDCommonå•ä¾‹
 	UDDCommon::Get()->InitDriver(this);
-	//ÔÚÓÎÏ·ÔËĞĞÖ®Ç°±ØĞë½øĞĞÒ»´ÎÄ£×é	IDµÄÉè¶¨, ÔÚÕâÀïÃæ»á×¢²á×ÓÄ£×éµ½Êı×é
+	//åœ¨æ¸¸æˆè¿è¡Œä¹‹å‰å¿…é¡»è¿›è¡Œä¸€æ¬¡æ¨¡ç»„	IDçš„è®¾å®š, åœ¨è¿™é‡Œé¢ä¼šæ³¨å†Œå­æ¨¡ç»„åˆ°æ•°ç»„
 	Center->IterChangeModuleType(Center, ModuleType);
-	//Ö¸¶¨ÍêÄ£×éIDºóÊÕ¼¯Ä£×éµ½×ÜÊı×é
+	//æŒ‡å®šå®Œæ¨¡ç»„IDåæ”¶é›†æ¨¡ç»„åˆ°æ€»æ•°ç»„
 	Center->TotalGatherModule(ModuleType);
-	//´´½¨ËùÓÃÄ£×éµÄÄ£¿é
+	//åˆ›å»ºæ‰€ç”¨æ¨¡ç»„çš„æ¨¡å—
 	Center->IterCreateManager(Center);
 }
 
@@ -36,24 +36,24 @@ void ADDDriver::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//×¢²áGamePlayµ½¿ò¼Ü
+	//æ³¨å†ŒGamePlayåˆ°æ¡†æ¶
 	RegisterGamePlay();
 
-	//µü´úµ÷ÓÃInitº¯Êı
+	//è¿­ä»£è°ƒç”¨Initå‡½æ•°
 	Center->IterModuleInit(Center);
 }
 
 void ADDDriver::RegisterGamePlay()
 {
-	//»ñÈ¡GameInstance
+	//è·å–GameInstance
 	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
-	//Èç¹û´æÔÚ²¢ÇÒ¼Ì³Ğ×ÔIDDOO,¾Í×¢²á½øCenter,ÀàÃûºÍ¶ÔÏóÃû¶¼ÊÇGameInstance
+	//å¦‚æœå­˜åœ¨å¹¶ä¸”ç»§æ‰¿è‡ªIDDOO,å°±æ³¨å†Œè¿›Center,ç±»åå’Œå¯¹è±¡åéƒ½æ˜¯GameInstance
 	if (GameInstance && Cast<IDDOO>(GameInstance))
-		Cast<IDDOO>(GameInstance)->RegisterToModule("Center", "GameInstacne", "GameInstacne");
+		Cast<IDDOO>(GameInstance)->RegisterToModule("Center", "GameInstance", "GameInstance");
 
-	//»ñÈ¡Controller²¢ÇÒ×¢²áµ½DDCommon
+	//è·å–Controllerå¹¶ä¸”æ³¨å†Œåˆ°DDCommon
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	//×¢²áµ½Common
+	//æ³¨å†Œåˆ°Common
 	if (!PlayerController)
 		DDH::Debug() << "No PlayerController" << DDH::Endl();
 	else
@@ -67,19 +67,19 @@ void ADDDriver::Tick(float DeltaTime)
 
 	if (!IsBeginPlay)
 	{
-		//µü´úµ÷ÓÃBeginº¯Êı
+		//è¿­ä»£è°ƒç”¨Beginå‡½æ•°
 		Center->IterModuleBeginPlay(Center);
-		//Ö»Ö´ĞĞµÚÒ»Ö¡
+		//åªæ‰§è¡Œç¬¬ä¸€å¸§
 		IsBeginPlay = true;
 	}
 	else
-		//µü´úµ÷ÓÃTickº¯Êı
+		//è¿­ä»£è°ƒç”¨Tickå‡½æ•°
 		Center->IterModuleTick(Center, DeltaTime);
 }
 
 bool ADDDriver::RegisterToModule(IDDOO* ObjectInst)
 {
-	//µ÷ÓÃÖĞÑëÄ£×é½øĞĞ×¢²á
+	//è°ƒç”¨ä¸­å¤®æ¨¡ç»„è¿›è¡Œæ³¨å†Œ
 	return Center->RegisterToModule(ObjectInst);
 }
 
