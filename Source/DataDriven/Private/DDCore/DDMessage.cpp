@@ -13,10 +13,10 @@ UDDInputBinder::UDDInputBinder()
 void UDDInputBinder::PressEvent()
 {
 	InputCount++;
-	//»Áπ˚InputCount”ÎTotalCountœ‡µ», Àµ√˜À˘”–∞¥º¸∂º∞¥œ¬¡À
+	//Â¶ÇÊûúInputCount‰∏éTotalCountÁõ∏Á≠â, ËØ¥ÊòéÊâÄÊúâÊåâÈîÆÈÉΩÊåâ‰∏ã‰∫Ü
 	if (InputCount == TotalCount)
 	{
-		//»Áπ˚‘ –Ì‘⁄‘›Õ£ ±÷¥––
+		//Â¶ÇÊûúÂÖÅËÆ∏Âú®ÊöÇÂÅúÊó∂ÊâßË°å
 		if (bExecuteWhenPause)
 			InputDele.ExecuteIfBound();
 		else if (!bExecuteWhenPause && !UDDCommon::Get()->IsPauseGame())
@@ -42,13 +42,13 @@ void UDDMessage::MessageInit()
 
 void UDDMessage::MessageBeginPlay()
 {
-	//¥”UDDCommonªÒ»°Controller
+	//‰ªéUDDCommonËé∑ÂèñController
 	PlayerController = UDDCommon::Get()->GetController();
 }
 
 void UDDMessage::MessageTick(float DeltaSeconds)
 {
-	//¥¶¿Ì–≠≥Ã
+	//Â§ÑÁêÜÂçèÁ®ã
 	TArray<FName> CompleteTask;
 	for (TMap<FName, TMap<FName, DDCoroTask*>>::TIterator It(CoroStack); It; ++It)
 	{
@@ -72,7 +72,7 @@ void UDDMessage::MessageTick(float DeltaSeconds)
 
 
 
-	//¥¶¿Ì—” ±œµÕ≥
+	//Â§ÑÁêÜÂª∂Êó∂Á≥ªÁªü
 	CompleteTask.Empty();
 	for (TMap<FName, TMap<FName, DDInvokeTask*>>::TIterator It(InvokeStack); It; ++It)
 	{
@@ -168,6 +168,9 @@ void UDDMessage::UnBindInput(FName ObjectName)
 	TArray<UDDInputBinder*> BinderList = *BinderGroup.Find(ObjectName);
 	for (int i = 0; i < BinderList.Num(); ++i)
 	{
+		//ËøôÈáåÈúÄË¶ÅË∞ÉÁî®‰∏ÄÊ¨°UnbindÊâçË°å, Âõ†‰∏∫UObjectÈîÄÊØÅÈúÄË¶ÅÊó∂Èó¥
+		BinderList[i]->InputDele.Unbind();
+		//ËøôÁßçÈîÄÊØÅÊñπÂºèÈúÄË¶Å‰∏ÄÊÆµÊó∂Èó¥ÊâçËÉΩÂÆåÊàê
 		BinderList[i]->RemoveFromRoot();
 		BinderList[i]->ConditionalBeginDestroy();
 	}
